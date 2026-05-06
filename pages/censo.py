@@ -27,7 +27,7 @@ cores_raca = {
     'Não se aplica': '#e1e3e2'# surface-variant
 }
 
-layout = html.Div(className="w-full h-full flex-1 overflow-y-auto p-6 md:p-8 bg-background", children=[
+layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
     
     # Page Header
     html.Div(className="mb-8 flex items-end justify-between", children=[
