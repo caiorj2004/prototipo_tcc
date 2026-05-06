@@ -27,7 +27,7 @@ cores_raca = {
     'Não se aplica': '#e1e3e2'# surface-variant
 }
 
-layout = html.Main(className="flex-1 overflow-y-auto p-container-margin bg-background", children=[
+layout = html.Main(className="flex-1 w-full overflow-y-auto p-8 md:p-10 bg-background", children=[
     
     # Page Header
     html.Div(className="mb-8 flex items-end justify-between", children=[
@@ -42,7 +42,7 @@ layout = html.Main(className="flex-1 overflow-y-auto p-container-margin bg-backg
     ]),
     
     # Controles de Filtro (Para respeitar a regra de não agregação indevida)
-    html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding mb-gutter flex flex-col md:flex-row gap-4", children=[
+    html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding mb-8 flex flex-col md:flex-row gap-8", children=[
         html.Div(className="flex-1", children=[
             html.Label("Selecione o Ramo:", className="block font-label-sm text-label-sm text-on-surface-variant mb-2 uppercase tracking-wider"),
             dcc.Dropdown(
@@ -64,7 +64,7 @@ layout = html.Main(className="flex-1 overflow-y-auto p-container-margin bg-backg
     ]),
     
     # Data Grid
-    html.Div(className="grid grid-cols-1 xl:grid-cols-12 gap-gutter pb-12", children=[
+    html.Div(className="grid grid-cols-1 xl:grid-cols-12 gap-8 pb-12", children=[
         
         # 1. Distribution of establishments by color/race
         html.Div(className="xl:col-span-12 bg-surface-container-lowest border border-outline-variant rounded-xl flex flex-col relative overflow-hidden", children=[

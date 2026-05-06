@@ -160,7 +160,7 @@ sidebar = html.Aside(className="fixed left-0 top-0 h-full w-[280px] bg-emerald-9
 
 # ----------------- TOPBAR -----------------
 topbar = html.Header(className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 w-full z-40 sticky top-0", children=[
-    html.Div(className="flex justify-between items-center w-full px-8 py-3", children=[
+    html.Div(className="flex justify-between items-center w-full px-10 py-3", children=[
         html.Div(className="flex items-center gap-4", children=[
             html.Span("Painel de Indicadores", className="text-xl font-bold text-emerald-900 dark:text-emerald-400 font-public-sans tracking-tight")
         ]),
@@ -182,9 +182,9 @@ topbar = html.Header(className="bg-white dark:bg-slate-900 border-b border-slate
 ])
 
 # ----------------- LAYOUT PRINCIPAL -----------------
-app.layout = html.Div(className="font-body-md text-body-md text-on-background min-h-screen flex", children=[
+app.layout = html.Div(className="flex min-h-screen w-full bg-background font-body-md text-body-md text-on-background", children=[
     sidebar,
-    html.Div(className="flex-1 ml-[280px] flex flex-col min-w-0 h-screen overflow-hidden", children=[
+    html.Div(className="flex-1 flex flex-col ml-[280px] w-[calc(100%-280px)] h-screen overflow-hidden", children=[
         topbar,
         dash.page_container 
     ])
