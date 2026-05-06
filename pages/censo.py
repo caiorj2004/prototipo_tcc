@@ -27,7 +27,7 @@ cores_raca = {
     'Não se aplica': '#e1e3e2'# surface-variant
 }
 
-layout = html.Main(className="flex-1 w-full overflow-y-auto p-8 md:p-10 bg-background", children=[
+layout = html.Div(className="w-full h-full flex-1 overflow-y-auto p-6 md:p-8 bg-background", children=[
     
     # Page Header
     html.Div(className="mb-8 flex items-end justify-between", children=[
@@ -42,7 +42,7 @@ layout = html.Main(className="flex-1 w-full overflow-y-auto p-8 md:p-10 bg-backg
     ]),
     
     # Controles de Filtro (Para respeitar a regra de não agregação indevida)
-    html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding mb-8 flex flex-col md:flex-row gap-8", children=[
+    html.Div(className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding mb-8 flex flex-col md:flex-row gap-8", children=[
         html.Div(className="flex-1", children=[
             html.Label("Selecione o Ramo:", className="block font-label-sm text-label-sm text-on-surface-variant mb-2 uppercase tracking-wider"),
             dcc.Dropdown(
@@ -64,10 +64,10 @@ layout = html.Main(className="flex-1 w-full overflow-y-auto p-8 md:p-10 bg-backg
     ]),
     
     # Data Grid
-    html.Div(className="grid grid-cols-1 xl:grid-cols-12 gap-8 pb-12", children=[
+    html.Div(className="w-full mb-6", children=[
         
         # 1. Distribution of establishments by color/race
-        html.Div(className="xl:col-span-12 bg-surface-container-lowest border border-outline-variant rounded-xl flex flex-col relative overflow-hidden", children=[
+        html.Div(className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl flex flex-col relative overflow-hidden", children=[
             html.Div(className="p-card-padding border-b border-surface-variant flex justify-between items-center", children=[
                 html.Div([
                     html.H2("Distribuição de Estabelecimentos por Cor ou Raça", className="font-h3 text-h3 text-primary"),
@@ -106,10 +106,14 @@ layout = html.Main(className="flex-1 w-full overflow-y-auto p-8 md:p-10 bg-backg
                     ])
                 ])
             ])
-        ]),
+        ])
+    ]),
+    
+    # Seção Inferior (Tabela e Gráfico de Barras)
+    html.Div(className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full pb-12", children=[
         
         # 2. Value of production by color/race (Table/Comparison)
-        html.Div(className="xl:col-span-7 bg-surface-container-lowest border border-outline-variant rounded-xl flex flex-col relative overflow-hidden", children=[
+        html.Div(className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl flex flex-col relative overflow-hidden", children=[
             html.Div(className="p-card-padding border-b border-surface-variant flex justify-between items-center", children=[
                 html.Div([
                     html.H2("Valor de Produção por Cor ou Raça", className="font-h3 text-h3 text-primary"),
@@ -130,7 +134,7 @@ layout = html.Main(className="flex-1 w-full overflow-y-auto p-8 md:p-10 bg-backg
         ]),
         
         # 3. Quantity produced by color/race (Chart)
-        html.Div(className="xl:col-span-5 bg-surface-container-lowest border border-outline-variant rounded-xl flex flex-col relative overflow-hidden", children=[
+        html.Div(className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl flex flex-col relative overflow-hidden", children=[
             html.Div(className="p-card-padding border-b border-surface-variant flex justify-between items-center", children=[
                 html.Div([
                     html.H2("Quantidade Produzida", className="font-h3 text-h3 text-primary"),
