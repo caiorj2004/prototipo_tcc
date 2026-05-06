@@ -31,21 +31,24 @@ fig_agri.update_layout(
     font=dict(family="Public Sans")
 )
 
-# 2. Gráfico Pecuária (Treemap)
-fig_pec = px.treemap(
-    df_pec,
-    path=[px.Constant('Rebanho Total'), 'Produto'],
-    values='Valor',
-    color='Valor',
-    color_continuous_scale=['#c9e6ff', '#00405e', '#1b4332']
+# 2. Gráfico Pecuária (Barras Horizontais com Escala Logarítmica)
+df_pec_sorted = df_pec.sort_values(by='Valor', ascending=True)
+fig_pec = px.bar(
+    df_pec_sorted,
+    x='Valor',
+    y='Produto',
+    orientation='h',
+    text='Valor',
+    log_x=True, # Escala logarítmica para evidenciar rebanhos menores frente aos Galináceos
+    color_discrete_sequence=['#00405e']
 )
-fig_pec.update_traces(
-    textinfo='label+value+percent parent', 
-    texttemplate='<b>%{label}</b><br>%{value:,.0f} cabeças<br>(%{percentParent:.1%})'
-)
+fig_pec.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
 fig_pec.update_layout(
-    margin=dict(t=20, l=10, r=10, b=10), 
+    margin=dict(t=20, l=10, r=60, b=10), 
     paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)',
+    xaxis_title="Número de Cabeças (Escala Log)",
+    yaxis_title="",
     separators=".,",
     font=dict(family="Public Sans")
 )
