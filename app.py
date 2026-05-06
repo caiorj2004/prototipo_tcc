@@ -182,11 +182,14 @@ topbar = html.Header(className="bg-white dark:bg-slate-900 border-b border-slate
 ])
 
 # ----------------- LAYOUT PRINCIPAL -----------------
-app.layout = html.Div(className="flex min-h-screen w-full bg-background font-body-md text-body-md text-on-background", children=[
+app.layout = html.Div(className="font-body-md text-body-md text-on-background min-h-screen flex w-full bg-background", children=[
     sidebar,
-    html.Div(className="flex-1 flex flex-col ml-[280px] w-[calc(100%-280px)] h-screen overflow-hidden", children=[
+    html.Div(className="flex-1 ml-[280px] flex flex-col min-w-0 h-screen", children=[
         topbar,
-        dash.page_container 
+        # A MÁGICA ESTÁ AQUI: Este Main força o container das páginas a usar 100% da largura e cria a barra de rolagem!
+        html.Main(className="flex-1 w-full h-full overflow-y-auto", children=[
+            dash.page_container 
+        ])
     ])
 ])
 
