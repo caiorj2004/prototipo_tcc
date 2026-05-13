@@ -3,5 +3,3 @@ pandas
 plotly
 odfpy
 openpyxl
-=======
-openpyxl
