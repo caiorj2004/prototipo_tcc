@@ -134,7 +134,6 @@ fig_mo_sem.update_layout(margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgb
 df_mo_com = get_df('Mão de Obra - Parentesco')
 fig_mo_com = go.Figure()
 if not df_mo_com.empty:
-    df_mo_com = df_mo_com[df_mo_com.iloc[:,0] != 'Total']
     fig_mo_com.add_trace(go.Bar(x=df_mo_com.iloc[:,0], y=df_mo_com.iloc[:,2], name='Homens', marker_color='#3c096c'))
     fig_mo_com.add_trace(go.Bar(x=df_mo_com.iloc[:,0], y=df_mo_com.iloc[:,1], name='Mulheres', marker_color='#c77dff'))
 fig_mo_com.update_layout(barmode='group', margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
