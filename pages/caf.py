@@ -74,29 +74,43 @@ if not df_atividade.empty:
     fig_atividade.add_trace(go.Bar(x=vals.index, y=vals.values, marker_color='#2d6a4f'))
 fig_atividade.update_layout(margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
 
-# 6. Renda (Valor Total vs Mediana) - VALOR TOTAL
-fig_renda_valor = go.Figure()
+# 6. Renda (Produção Total) - VALOR TOTAL
+fig_renda_valor_total = go.Figure()
 df_renda_valor = dados_caf.get('renda_valor', pd.DataFrame())
 if not df_renda_valor.empty:
-    produtos = df_renda_valor['Produto'].tolist()
-    col_producao = [c for c in df_renda_valor.columns if 'total' in c.lower() and 'mediana' not in c.lower()][0]
-    col_mediana = [c for c in df_renda_valor.columns if 'mediana' in c.lower()][0]
-    
-    fig_renda_valor.add_trace(go.Bar(x=produtos, y=df_renda_valor[col_producao], name='Produção Total (R$)', marker_color='#023e8a'))
-    fig_renda_valor.add_trace(go.Bar(x=produtos, y=df_renda_valor[col_mediana], name='Mediana (R$)', marker_color='#48cae4'))
-fig_renda_valor.update_layout(barmode='group', margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+    df_rv = df_renda_valor.sort_values(by=df_renda_valor.columns[3], ascending=True) # Sort by Producao total
+    produtos = df_rv['Produto'].tolist()
+    col_producao = [c for c in df_rv.columns if 'total' in c.lower() and 'mediana' not in c.lower()][0]
+    fig_renda_valor_total.add_trace(go.Bar(y=produtos, x=df_rv[col_producao], orientation='h', name='Produção Total (R$)', marker_color='#023e8a'))
+fig_renda_valor_total.update_layout(margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', showlegend=False)
 
-# 7. Renda (Valor Total vs Mediana) - QUANTIDADE DE CADASTROS
-fig_renda_qtd = go.Figure()
+# 7. Renda (Produção Total) - QUANTIDADE DE CADASTROS
+fig_renda_qtd_total = go.Figure()
 df_renda_qtd = dados_caf.get('renda_qtd', pd.DataFrame())
 if not df_renda_qtd.empty:
-    produtos = df_renda_qtd['Produto'].tolist()
-    col_producao = [c for c in df_renda_qtd.columns if 'total' in c.lower() and 'mediana' not in c.lower()][0]
-    col_mediana = [c for c in df_renda_qtd.columns if 'mediana' in c.lower()][0]
-    
-    fig_renda_qtd.add_trace(go.Bar(x=produtos, y=df_renda_qtd[col_producao], name='Produção Total (R$)', marker_color='#1b4965'))
-    fig_renda_qtd.add_trace(go.Bar(x=produtos, y=df_renda_qtd[col_mediana], name='Mediana (R$)', marker_color='#62b6cb'))
-fig_renda_qtd.update_layout(barmode='group', margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+    df_rq = df_renda_qtd.sort_values(by=df_renda_qtd.columns[3], ascending=True)
+    produtos = df_rq['Produto'].tolist()
+    col_producao = [c for c in df_rq.columns if 'total' in c.lower() and 'mediana' not in c.lower()][0]
+    fig_renda_qtd_total.add_trace(go.Bar(y=produtos, x=df_rq[col_producao], orientation='h', name='Produção Total (R$)', marker_color='#1b4965'))
+fig_renda_qtd_total.update_layout(margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', showlegend=False)
+
+# 8. Renda (Per-capita) - VALOR TOTAL
+fig_renda_valor_percapita = go.Figure()
+if not df_renda_valor.empty:
+    df_rvp = df_renda_valor.sort_values(by=df_renda_valor.columns[4], ascending=True) # Sort by Per-capita
+    produtos = df_rvp['Produto'].tolist()
+    col_percapita = [c for c in df_rvp.columns if 'per-capta' in c.lower() or 'per capita' in c.lower()][0]
+    fig_renda_valor_percapita.add_trace(go.Bar(y=produtos, x=df_rvp[col_percapita], orientation='h', name='Produção Per-capita (R$)', marker_color='#0077b6'))
+fig_renda_valor_percapita.update_layout(margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', showlegend=False)
+
+# 9. Renda (Per-capita) - QUANTIDADE DE CADASTROS
+fig_renda_qtd_percapita = go.Figure()
+if not df_renda_qtd.empty:
+    df_rqp = df_renda_qtd.sort_values(by=df_renda_qtd.columns[4], ascending=True)
+    produtos = df_rqp['Produto'].tolist()
+    col_percapita = [c for c in df_rqp.columns if 'per-capta' in c.lower() or 'per capita' in c.lower()][0]
+    fig_renda_qtd_percapita.add_trace(go.Bar(y=produtos, x=df_rqp[col_percapita], orientation='h', name='Produção Per-capita (R$)', marker_color='#0096c7'))
+fig_renda_qtd_percapita.update_layout(margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', showlegend=False)
 
 # ==========================================
 # Layout da Página
@@ -154,18 +168,34 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
         ])
     ]),
     
-    # Linha 3: Renda
-    html.Div(className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full mb-8", children=[
+    # Linha 3: Renda (Produção Total)
+    html.Div(className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full mb-6", children=[
         html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
-            html.H3("Produção e Mediana (Por Valor Total de Produção)", className="font-label-lg text-on-surface mb-2"),
+            html.H3("Produção Total (Por Valor Total de Produção)", className="font-label-lg text-on-surface mb-2"),
             html.Div(className="flex-1 min-h-[350px]", children=[
-                dcc.Graph(figure=fig_renda_valor, style={'height': '100%', 'width': '100%'})
+                dcc.Graph(figure=fig_renda_valor_total, style={'height': '100%', 'width': '100%'})
             ])
         ]),
         html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
-            html.H3("Produção e Mediana (Por Quantidade de Cadastros)", className="font-label-lg text-on-surface mb-2"),
+            html.H3("Produção Total (Por Quantidade de Cadastros)", className="font-label-lg text-on-surface mb-2"),
             html.Div(className="flex-1 min-h-[350px]", children=[
-                dcc.Graph(figure=fig_renda_qtd, style={'height': '100%', 'width': '100%'})
+                dcc.Graph(figure=fig_renda_qtd_total, style={'height': '100%', 'width': '100%'})
+            ])
+        ])
+    ]),
+    
+    # Linha 4: Renda (Produção Per-capita)
+    html.Div(className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full mb-8", children=[
+        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
+            html.H3("Produção Per-capita (Por Valor Total de Produção)", className="font-label-lg text-on-surface mb-2"),
+            html.Div(className="flex-1 min-h-[350px]", children=[
+                dcc.Graph(figure=fig_renda_valor_percapita, style={'height': '100%', 'width': '100%'})
+            ])
+        ]),
+        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
+            html.H3("Produção Per-capita (Por Quantidade de Cadastros)", className="font-label-lg text-on-surface mb-2"),
+            html.Div(className="flex-1 min-h-[350px]", children=[
+                dcc.Graph(figure=fig_renda_qtd_percapita, style={'height': '100%', 'width': '100%'})
             ])
         ])
     ]),
