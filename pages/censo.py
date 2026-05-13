@@ -79,6 +79,66 @@ if not df_fin_fin.empty:
     fig_fin_fin.add_trace(go.Bar(x=df_fin_fin.iloc[:,0], y=df_fin_fin.iloc[:,1], marker_color='#1b4965'))
 fig_fin_fin.update_layout(margin=dict(t=10, b=10, l=10, r=10), showlegend=False, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
 
+# 4. Sociodemográfico e Mão de Obra
+# Perfil - Sexo
+df_perfil_sexo = get_df('Perfil - Sexo')
+fig_perfil_sexo = go.Figure()
+if not df_perfil_sexo.empty:
+    fig_perfil_sexo.add_trace(go.Pie(labels=df_perfil_sexo.iloc[:,0], values=df_perfil_sexo.iloc[:,1], marker=dict(colors=['#5a189a', '#9d4edd']), hole=0.5))
+fig_perfil_sexo.update_layout(margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+
+# Perfil - Idade Sexo (Pirâmide Etária)
+df_perfil_idade = get_df('Perfil - Idade Sexo')
+fig_perfil_idade = go.Figure()
+if not df_perfil_idade.empty:
+    y_age = df_perfil_idade.iloc[:,0]
+    x_women = df_perfil_idade.iloc[:,1]
+    x_men = df_perfil_idade.iloc[:,2] * -1  # Invert men for pyramid
+    
+    max_val = int(max(x_women.max() if not x_women.empty else 0, abs(x_men.min() if not x_men.empty else 0)))
+    if max_val > 0:
+        tickvals = [-max_val, -max_val//2, 0, max_val//2, max_val]
+        ticktext = [str(abs(v)) for v in tickvals]
+    else:
+        tickvals = None
+        ticktext = None
+
+    fig_perfil_idade.add_trace(go.Bar(y=y_age, x=x_men, name='Homens', orientation='h', marker_color='#3c096c'))
+    fig_perfil_idade.add_trace(go.Bar(y=y_age, x=x_women, name='Mulheres', orientation='h', marker_color='#c77dff'))
+    fig_perfil_idade.update_layout(
+        barmode='relative',
+        margin=dict(t=10, b=10, l=10, r=10),
+        xaxis=dict(tickvals=tickvals, ticktext=ticktext, title='Valores Absolutos'),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        showlegend=True,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
+
+# Perfil - Escolaridade
+df_escolaridade = get_df('Perfil - Escolaridade')
+fig_escolaridade = go.Figure()
+if not df_escolaridade.empty:
+    df_escolaridade = df_escolaridade.sort_values(by=df_escolaridade.columns[1], ascending=True)
+    fig_escolaridade.add_trace(go.Bar(y=df_escolaridade.iloc[:,0], x=df_escolaridade.iloc[:,1], orientation='h', marker_color='#7b2cbf'))
+fig_escolaridade.update_layout(margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+
+# Mão de Obra - Sem Parentesco
+df_mo_sem = get_df('Mão de Obra - Sem Parentesco')
+fig_mo_sem = go.Figure()
+if not df_mo_sem.empty:
+    fig_mo_sem.add_trace(go.Pie(labels=df_mo_sem.iloc[:,0], values=df_mo_sem.iloc[:,1], hole=0.5, marker=dict(colors=['#ff9e00', '#ff6d00', '#e85d04'])))
+fig_mo_sem.update_layout(margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+
+# Mão de Obra - Parentesco
+df_mo_com = get_df('Mão de Obra - Parentesco')
+fig_mo_com = go.Figure()
+if not df_mo_com.empty:
+    df_mo_com = df_mo_com[df_mo_com.iloc[:,0] != 'Total']
+    fig_mo_com.add_trace(go.Bar(x=df_mo_com.iloc[:,0], y=df_mo_com.iloc[:,2], name='Homens', marker_color='#3c096c'))
+    fig_mo_com.add_trace(go.Bar(x=df_mo_com.iloc[:,0], y=df_mo_com.iloc[:,1], name='Mulheres', marker_color='#c77dff'))
+fig_mo_com.update_layout(barmode='group', margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', showlegend=True, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+
 # Obter lista de Ramos
 ramos = list(set([v['ramo'] for v in dados_censo.values() if v['ramo'] != 'Geral']))
 ramos.sort()
@@ -299,6 +359,54 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
                 html.H3("Finalidade do Financiamento", className="font-label-lg text-on-surface mb-2 text-center"),
                 html.Div(className="flex-1 min-h-[250px]", children=[
                     dcc.Graph(figure=fig_fin_fin, style={'height': '100%', 'width': '100%'})
+                ])
+            ])
+        ])
+    ]),
+
+    # === SEÇÃO: PERFIL SOCIODEMOGRÁFICO E MÃO DE OBRA ===
+    html.Div(className="w-full mt-12 mb-8", children=[
+        html.Div(className="flex items-center gap-3 mb-6", children=[
+            html.Span("group", className="material-symbols-outlined text-primary text-[32px]"),
+            html.H2("Perfil do Produtor e Mão de Obra", className="font-h3 text-h3 text-primary")
+        ]),
+        
+        # Grid 1: Sexo e Idade
+        html.Div(className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full mb-6", children=[
+            html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col lg:col-span-1", children=[
+                html.H3("Sexo do Produtor", className="font-label-lg text-on-surface mb-2 text-center"),
+                html.Div(className="flex-1 min-h-[250px]", children=[
+                    dcc.Graph(figure=fig_perfil_sexo, style={'height': '100%', 'width': '100%'})
+                ])
+            ]),
+            html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col lg:col-span-2", children=[
+                html.H3("Pirâmide Etária", className="font-label-lg text-on-surface mb-2 text-center"),
+                html.Div(className="flex-1 min-h-[250px]", children=[
+                    dcc.Graph(figure=fig_perfil_idade, style={'height': '100%', 'width': '100%'})
+                ])
+            ])
+        ]),
+
+        # Grid 2: Escolaridade
+        html.Div(className="w-full mb-6 bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
+            html.H3("Nível de Escolaridade", className="font-label-lg text-on-surface mb-2"),
+            html.Div(className="flex-1 min-h-[300px]", children=[
+                dcc.Graph(figure=fig_escolaridade, style={'height': '100%', 'width': '100%'})
+            ])
+        ]),
+
+        # Grid 3: Mão de Obra
+        html.Div(className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full", children=[
+            html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
+                html.H3("Pessoal Ocupado (Sem Parentesco)", className="font-label-lg text-on-surface mb-2 text-center"),
+                html.Div(className="flex-1 min-h-[250px]", children=[
+                    dcc.Graph(figure=fig_mo_sem, style={'height': '100%', 'width': '100%'})
+                ])
+            ]),
+            html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
+                html.H3("Mão de Obra Familiar por Sexo e Idade", className="font-label-lg text-on-surface mb-2 text-center"),
+                html.Div(className="flex-1 min-h-[250px]", children=[
+                    dcc.Graph(figure=fig_mo_com, style={'height': '100%', 'width': '100%'})
                 ])
             ])
         ])

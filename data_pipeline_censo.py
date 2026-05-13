@@ -11,7 +11,9 @@ def load_censo_data(data_dir='data/'):
     Retorna um dicionário onde a chave é um nome claro (métrica + escopo)
     e o valor é o DataFrame.
     """
-    files = glob.glob(os.path.join(data_dir, '*.ods'))
+    files_ods = glob.glob(os.path.join(data_dir, '*.ods'))
+    files_xlsx = glob.glob(os.path.join(data_dir, '*.xlsx'))
+    files = files_ods + files_xlsx
     data_dict = {}
     
     for f in files:
@@ -19,7 +21,8 @@ def load_censo_data(data_dir='data/'):
         
         # Lê o arquivo. As planilhas fornecidas estão com o cabeçalho na linha 0.
         try:
-            df = pd.read_excel(f, engine='odf', header=0)
+            eng = 'odf' if f.endswith('.ods') else None
+            df = pd.read_excel(f, engine=eng, header=0)
             
             # Limpeza básica (remover colunas não nomeadas se houver lixo)
             df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
@@ -74,6 +77,18 @@ def load_censo_data(data_dir='data/'):
                 tipo = 'Financiamento - Obtencao'
             elif 'Finalidade do financiamento' in basename:
                 tipo = 'Financiamento - Finalidade'
+                
+            # Novos Dados - Sociodemográfico e Mão de Obra
+            elif 'Número de estabelecimentos agropecuários por sexo e idade do produtor' in basename:
+                tipo = 'Perfil - Idade Sexo'
+            elif 'Número de estabelecimentos agropecuários por sexo do produtor' in basename:
+                tipo = 'Perfil - Sexo'
+            elif 'Número de estabelecimentos agropecuários por escolaridade' in basename:
+                tipo = 'Perfil - Escolaridade'
+            elif 'Pessoal ocupado sem parentesco' in basename:
+                tipo = 'Mão de Obra - Sem Parentesco'
+            elif 'Sexo e idade do pessoal ocupado com parentesco com o produtor' in basename:
+                tipo = 'Mão de Obra - Parentesco'
                 
             if 'Horticultura' in basename:
                 ramo = 'Horticultura'
