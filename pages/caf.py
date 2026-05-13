@@ -182,8 +182,8 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
                     columns=[{"name": i, "id": i} for i in dados_caf.get('pj', pd.DataFrame()).columns] if not dados_caf.get('pj', pd.DataFrame()).empty else [],
                     page_size=10,
                     style_table={'overflowX': 'auto', 'width': '100%'},
-                    style_header={'backgroundColor': '#2b2d42', 'color': 'white', 'fontWeight': 'bold'},
-                    style_data={'backgroundColor': 'transparent', 'color': '#edf2f4'},
+                    style_header={'backgroundColor': '#f1f5f9', 'color': 'black', 'fontWeight': 'bold'},
+                    style_data={'backgroundColor': 'white', 'color': 'black'},
                     style_cell={'textAlign': 'left', 'padding': '10px', 'fontFamily': 'Public Sans, sans-serif'}
                 )
             ]),
@@ -195,8 +195,8 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
                     columns=[{"name": i, "id": i} for i in dados_caf.get('entidade', pd.DataFrame()).columns] if not dados_caf.get('entidade', pd.DataFrame()).empty else [],
                     page_size=10,
                     style_table={'overflowX': 'auto', 'width': '100%'},
-                    style_header={'backgroundColor': '#2b2d42', 'color': 'white', 'fontWeight': 'bold'},
-                    style_data={'backgroundColor': 'transparent', 'color': '#edf2f4'},
+                    style_header={'backgroundColor': '#f1f5f9', 'color': 'black', 'fontWeight': 'bold'},
+                    style_data={'backgroundColor': 'white', 'color': 'black'},
                     style_cell={'textAlign': 'left', 'padding': '10px', 'fontFamily': 'Public Sans, sans-serif'}
                 )
             ])
