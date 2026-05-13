@@ -2,8 +2,6 @@ dash
 pandas
 plotly
 odfpy
-<<<<<<< HEAD
 openpyxl
 =======
 openpyxl
->>>>>>> efa6cd157e6fd8d2b89d18e6e9a35018f87a9934
