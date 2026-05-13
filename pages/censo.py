@@ -1,6 +1,7 @@
 import dash
 from dash import html, dcc, callback, Input, Output
 import plotly.graph_objects as go
+import plotly.express as px
 import pandas as pd
 import sys
 import os
@@ -12,6 +13,71 @@ dash.register_page(__name__, path='/', name='Censo Agro 2017')
 
 # Carregar os dados reais
 dados_censo = load_censo_data()
+
+# Helpers para gráficos estáticos
+def get_df(tipo):
+    chave = f"{tipo} | Geral"
+    if chave in dados_censo:
+        return dados_censo[chave]['df']
+    return pd.DataFrame()
+
+# Construção dos gráficos estáticos macro
+# 1. Uso da Terra
+df_terra_geral = get_df('Terra - Geral')
+fig_terra_geral = go.Figure()
+if not df_terra_geral.empty:
+    fig_terra_geral.add_trace(go.Pie(labels=df_terra_geral.iloc[:,0], values=df_terra_geral.iloc[:,1], marker=dict(colors=['#283618', '#606c38', '#bc6c25']), hole=0.4))
+fig_terra_geral.update_layout(margin=dict(t=10, b=10, l=10, r=10), showlegend=True, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+
+df_terra_matas = get_df('Terra - Matas')
+fig_terra_matas = go.Figure()
+if not df_terra_matas.empty:
+    fig_terra_matas.add_trace(go.Bar(x=df_terra_matas.iloc[:,0], y=df_terra_matas.iloc[:,1], marker_color='#606c38'))
+fig_terra_matas.update_layout(margin=dict(t=10, b=10, l=10, r=10), xaxis={'visible': False}, showlegend=False, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+
+df_terra_past = get_df('Terra - Pastagem')
+fig_terra_past = go.Figure()
+if not df_terra_past.empty:
+    fig_terra_past.add_trace(go.Bar(x=df_terra_past.iloc[:,0], y=df_terra_past.iloc[:,1], marker_color='#dda15e'))
+fig_terra_past.update_layout(margin=dict(t=10, b=10, l=10, r=10), xaxis={'visible': False}, showlegend=False, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+
+df_terra_lav = get_df('Terra - Lavoura')
+fig_terra_lav = go.Figure()
+if not df_terra_lav.empty:
+    fig_terra_lav.add_trace(go.Bar(x=df_terra_lav.iloc[:,0], y=df_terra_lav.iloc[:,1], marker_color='#bc6c25'))
+fig_terra_lav.update_layout(margin=dict(t=10, b=10, l=10, r=10), xaxis={'visible': False}, showlegend=False, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+
+# 2. Mecanização
+df_maq_qtd = get_df('Máquinas - Qtd')
+fig_maq_qtd = go.Figure()
+if not df_maq_qtd.empty:
+    fig_maq_qtd = px.treemap(df_maq_qtd, path=[df_maq_qtd.columns[0]], values=df_maq_qtd.columns[1], color_discrete_sequence=['#495057', '#6c757d', '#adb5bd', '#f77f00', '#fcbf49'])
+    fig_maq_qtd.update_layout(margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+
+df_maq_estabs = get_df('Máquinas - Estabs')
+fig_maq_estabs = go.Figure()
+if not df_maq_estabs.empty:
+    fig_maq_estabs.add_trace(go.Bar(y=df_maq_estabs.iloc[:,0], x=df_maq_estabs.iloc[:,1], orientation='h', marker_color='#f77f00'))
+fig_maq_estabs.update_layout(margin=dict(t=10, b=10, l=10, r=10), yaxis={'autorange': 'reversed'}, showlegend=False, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+
+# 3. Financiamento
+df_fin_obt = get_df('Financiamento - Obtencao')
+fig_fin_obt = go.Figure()
+if not df_fin_obt.empty:
+    fig_fin_obt.add_trace(go.Pie(labels=df_fin_obt.iloc[:,0], values=df_fin_obt.iloc[:,1], hole=0.5, marker=dict(colors=['#1b4965', '#cae9ff'])))
+fig_fin_obt.update_layout(margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+
+df_fin_gov = get_df('Financiamento - Governo')
+fig_fin_gov = go.Figure()
+if not df_fin_gov.empty:
+    fig_fin_gov.add_trace(go.Pie(labels=df_fin_gov.iloc[:,0], values=df_fin_gov.iloc[:,1], hole=0.5, marker=dict(colors=['#62b6cb', '#5fa8d3'])))
+fig_fin_gov.update_layout(margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
+
+df_fin_fin = get_df('Financiamento - Finalidade')
+fig_fin_fin = go.Figure()
+if not df_fin_fin.empty:
+    fig_fin_fin.add_trace(go.Bar(x=df_fin_fin.iloc[:,0], y=df_fin_fin.iloc[:,1], marker_color='#1b4965'))
+fig_fin_fin.update_layout(margin=dict(t=10, b=10, l=10, r=10), showlegend=False, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
 
 # Obter lista de Ramos
 ramos = list(set([v['ramo'] for v in dados_censo.values() if v['ramo'] != 'Geral']))
@@ -144,6 +210,96 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
             ]),
             html.Div(className="p-card-padding flex-1 min-h-[300px] flex flex-col justify-end relative bg-surface-container-low/30", children=[
                 dcc.Graph(id='censo-quantidade-raca', style={'height': '100%', 'width': '100%'})
+            ])
+        ])
+    ]),
+    
+    # === AVISO DE DADOS MACRO ===
+    html.Div(className="w-full mt-12 mb-6 border-t border-outline-variant pt-8", children=[
+        html.Div(className="flex items-center gap-3 bg-surface-container-low p-4 rounded-xl border border-outline-variant", children=[
+            html.Span("info", className="material-symbols-outlined text-primary"),
+            html.Div([
+                html.H3("Dados Macroestruturais do Distrito Federal", className="font-label-lg text-on-surface"),
+                html.P("Os gráficos abaixo apresentam totais estaduais (Uso da Terra, Mecanização e Financiamento) e não sofrem influência dos filtros de Ramo/Produto acima.", className="text-sm text-on-surface-variant")
+            ])
+        ])
+    ]),
+
+    # === SEÇÃO: USO DA TERRA ===
+    html.Div(className="w-full mb-8", children=[
+        html.H2("Uso da Terra", className="font-h3 text-h3 text-primary mb-4"),
+        html.Div(className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full", children=[
+            # Pie Chart
+            html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
+                html.H3("Distribuição em Hectares", className="font-label-lg text-on-surface mb-2"),
+                html.Div(className="flex-1 min-h-[300px]", children=[
+                    dcc.Graph(figure=fig_terra_geral, style={'height': '100%', 'width': '100%'})
+                ])
+            ]),
+            # Bar charts grid
+            html.Div(className="grid grid-cols-1 md:grid-cols-3 gap-4", children=[
+                html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-col", children=[
+                    html.H3("Matas ou Florestas", className="font-label-md text-on-surface mb-2 text-center"),
+                    html.Div(className="flex-1 min-h-[200px]", children=[
+                        dcc.Graph(figure=fig_terra_matas, style={'height': '100%', 'width': '100%'})
+                    ])
+                ]),
+                html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-col", children=[
+                    html.H3("Pastagens", className="font-label-md text-on-surface mb-2 text-center"),
+                    html.Div(className="flex-1 min-h-[200px]", children=[
+                        dcc.Graph(figure=fig_terra_past, style={'height': '100%', 'width': '100%'})
+                    ])
+                ]),
+                html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-col", children=[
+                    html.H3("Lavouras", className="font-label-md text-on-surface mb-2 text-center"),
+                    html.Div(className="flex-1 min-h-[200px]", children=[
+                        dcc.Graph(figure=fig_terra_lav, style={'height': '100%', 'width': '100%'})
+                    ])
+                ])
+            ])
+        ])
+    ]),
+
+    # === SEÇÃO: MECANIZAÇÃO ===
+    html.Div(className="w-full mb-8", children=[
+        html.H2("Mecanização", className="font-h3 text-h3 text-primary mb-4"),
+        html.Div(className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full", children=[
+            html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
+                html.H3("Tipos de Máquinas (Qtd)", className="font-label-lg text-on-surface mb-2"),
+                html.Div(className="flex-1 min-h-[350px]", children=[
+                    dcc.Graph(figure=fig_maq_qtd, style={'height': '100%', 'width': '100%'})
+                ])
+            ]),
+            html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
+                html.H3("Estabelecimentos por Máquina", className="font-label-lg text-on-surface mb-2"),
+                html.Div(className="flex-1 min-h-[350px]", children=[
+                    dcc.Graph(figure=fig_maq_estabs, style={'height': '100%', 'width': '100%'})
+                ])
+            ])
+        ])
+    ]),
+
+    # === SEÇÃO: FINANCIAMENTO ===
+    html.Div(className="w-full mb-8", children=[
+        html.H2("Financiamento e Crédito", className="font-h3 text-h3 text-primary mb-4"),
+        html.Div(className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full", children=[
+            html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
+                html.H3("Obtenção de Financiamento", className="font-label-lg text-on-surface mb-2 text-center"),
+                html.Div(className="flex-1 min-h-[250px]", children=[
+                    dcc.Graph(figure=fig_fin_obt, style={'height': '100%', 'width': '100%'})
+                ])
+            ]),
+            html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
+                html.H3("Financiamento do Governo", className="font-label-lg text-on-surface mb-2 text-center"),
+                html.Div(className="flex-1 min-h-[250px]", children=[
+                    dcc.Graph(figure=fig_fin_gov, style={'height': '100%', 'width': '100%'})
+                ])
+            ]),
+            html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
+                html.H3("Finalidade do Financiamento", className="font-label-lg text-on-surface mb-2 text-center"),
+                html.Div(className="flex-1 min-h-[250px]", children=[
+                    dcc.Graph(figure=fig_fin_fin, style={'height': '100%', 'width': '100%'})
+                ])
             ])
         ])
     ])

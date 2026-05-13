@@ -1,7 +1,9 @@
 import pandas as pd
 import glob
 import os
+from functools import lru_cache
 
+@lru_cache(maxsize=1)
 def load_censo_data(data_dir='data/'):
     """
     Carrega os arquivos .ods do IBGE mantendo cada tabela intacta,
@@ -37,6 +39,9 @@ def load_censo_data(data_dir='data/'):
             
             # Categorizar o tipo de dado para a UI
             tipo = 'Outros'
+            ramo = 'Geral'
+            
+            # 1. Dados antigos com granularidade (Ramo/Produto/Raça)
             if 'Quantidade de estabelecimentos' in basename:
                 tipo = 'Qtd Estabelecimentos'
             elif 'Média da quantidade' in basename or 'Total da quantidade' in basename:
@@ -45,8 +50,31 @@ def load_censo_data(data_dir='data/'):
                 tipo = 'Valor Soma'
             elif 'Valor de produção (média)' in basename:
                 tipo = 'Valor Média'
+            
+            # Novos Dados - Uso da Terra
+            elif 'Utilização das terras em hectares' in basename:
+                tipo = 'Terra - Geral'
+            elif 'Utilização das terras de matas ou florestas' in basename:
+                tipo = 'Terra - Matas'
+            elif 'Utilização das terras de pastagem' in basename:
+                tipo = 'Terra - Pastagem'
+            elif 'Utilização das terras de lavoura' in basename:
+                tipo = 'Terra - Lavoura'
                 
-            ramo = 'Geral'
+            # Novos Dados - Mecanização
+            elif 'Número de máquinas, tratores ou equipamentos' in basename:
+                tipo = 'Máquinas - Qtd'
+            elif 'Número de estabelecimentos que usam máquinas' in basename:
+                tipo = 'Máquinas - Estabs'
+                
+            # Novos Dados - Financiamento
+            elif 'Estabelecimentos que obtiveram financiamento do governo' in basename:
+                tipo = 'Financiamento - Governo'
+            elif 'Estabelecimentos que obtiveram financiamento' in basename:
+                tipo = 'Financiamento - Obtencao'
+            elif 'Finalidade do financiamento' in basename:
+                tipo = 'Financiamento - Finalidade'
+                
             if 'Horticultura' in basename:
                 ramo = 'Horticultura'
             elif 'Lavoura Permanente' in basename:
