@@ -139,6 +139,10 @@ sidebar = html.Aside(className="fixed left-0 top-0 h-full w-[280px] bg-emerald-9
         dcc.Link(href="/caf", className="text-emerald-100/70 hover:text-white hover:bg-emerald-800/50 px-4 py-3 flex items-center gap-3 font-public-sans text-sm font-medium transition-all rounded", children=[
             html.Span("badge", className="material-symbols-outlined"),
             "CAF"
+        ]),
+        dcc.Link(href="/credito-rural", className="text-emerald-100/70 hover:text-white hover:bg-emerald-800/50 px-4 py-3 flex items-center gap-3 font-public-sans text-sm font-medium transition-all rounded", children=[
+            html.Span("account_balance", className="material-symbols-outlined"),
+            "Crédito Rural"
         ])
     ]),
     
