@@ -17,6 +17,17 @@ else:
 
 cidades_options = [{'label': 'Todas as Cidades', 'value': 'ALL'}] + [{'label': c, 'value': c} for c in cidades]
 
+# Prepara as opções de Ano e Mês
+anos_options = [{'label': 'Todos', 'value': 'ALL'}]
+if 'ANO_REFERÊNCIA' in df_cnpo.columns and not df_cnpo.empty:
+    anos = sorted([a for a in df_cnpo['ANO_REFERÊNCIA'].unique() if a])
+    anos_options += [{'label': str(a), 'value': a} for a in anos]
+
+meses_options = [{'label': 'Todos', 'value': 'ALL'}]
+if 'MÊS_REFERÊNCIA' in df_cnpo.columns and not df_cnpo.empty:
+    meses = sorted([m for m in df_cnpo['MÊS_REFERÊNCIA'].unique() if m])
+    meses_options += [{'label': str(m), 'value': m} for m in meses]
+
 layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
     
     # Page Header
@@ -31,17 +42,45 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
         ])
     ]),
     
-    # Global Filter
-    html.Div(className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding mb-8 flex items-center gap-4", children=[
-        html.Label("Filtro por Cidade:", className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider"),
-        html.Div(className="w-64", children=[
-            dcc.Dropdown(
-                id='cnpo-cidade-dropdown',
-                options=cidades_options,
-                value='ALL',
-                clearable=False,
-                className="font-public-sans text-sm"
-            )
+    # Global Filters
+    html.Div(className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding mb-8 flex flex-wrap items-center gap-6", children=[
+        html.Div(className="flex items-center gap-4", children=[
+            html.Label("Ano:", className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider"),
+            html.Div(className="w-32", children=[
+                dcc.Dropdown(
+                    id='cnpo-ano-dropdown',
+                    options=anos_options,
+                    value='ALL',
+                    clearable=False,
+                    className="font-public-sans text-sm"
+                )
+            ])
+        ]),
+        
+        html.Div(className="flex items-center gap-4", children=[
+            html.Label("Mês:", className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider"),
+            html.Div(className="w-32", children=[
+                dcc.Dropdown(
+                    id='cnpo-mes-dropdown',
+                    options=meses_options,
+                    value='ALL',
+                    clearable=False,
+                    className="font-public-sans text-sm"
+                )
+            ])
+        ]),
+
+        html.Div(className="flex items-center gap-4", children=[
+            html.Label("Cidade:", className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider"),
+            html.Div(className="w-64", children=[
+                dcc.Dropdown(
+                    id='cnpo-cidade-dropdown',
+                    options=cidades_options,
+                    value='ALL',
+                    clearable=False,
+                    className="font-public-sans text-sm"
+                )
+            ])
         ])
     ]),
     
@@ -102,14 +141,19 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
     Output('cnpo-atividades-bar', 'figure'),
     Output('cnpo-entidades-pie', 'figure'),
     Output('cnpo-entidades-table', 'children'),
-    Input('cnpo-cidade-dropdown', 'value')
+    Input('cnpo-cidade-dropdown', 'value'),
+    Input('cnpo-ano-dropdown', 'value'),
+    Input('cnpo-mes-dropdown', 'value')
 )
-def update_cnpo_dashboard(cidade):
-    # Filtra por cidade se necessário
+def update_cnpo_dashboard(cidade, ano, mes):
+    dff = df_cnpo.copy()
+    
     if cidade and cidade != 'ALL':
-        dff = df_cnpo[df_cnpo['CIDADE'] == cidade]
-    else:
-        dff = df_cnpo
+        dff = dff[dff['CIDADE'] == cidade]
+    if ano and ano != 'ALL' and 'ANO_REFERÊNCIA' in dff.columns:
+        dff = dff[dff['ANO_REFERÊNCIA'] == str(ano)]
+    if mes and mes != 'ALL' and 'MÊS_REFERÊNCIA' in dff.columns:
+        dff = dff[dff['MÊS_REFERÊNCIA'] == str(mes)]
         
     if dff.empty:
         return px.bar(title="Sem dados"), px.pie(title="Sem dados"), []

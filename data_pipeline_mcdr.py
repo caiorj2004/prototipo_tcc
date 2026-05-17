@@ -5,75 +5,71 @@ from functools import lru_cache
 @lru_cache(maxsize=1)
 def load_mcdr_data(data_dir='data/'):
     """
-    Carrega o arquivo de Crédito Rural (MCDR) de 2024 (Distrito Federal), 
-    trata os formatos numéricos pt-BR e cria os DataFrames agregados para a UI.
+    Carrega o arquivo de Crédito Rural (MCDR), 
+    trata os formatos numéricos pt-BR e retorna o DataFrame centralizado e limpo.
     """
-    filepath = os.path.join(data_dir, 'mcdr_2024.csv')
-    data_dict = {}
-    
-    if not os.path.exists(filepath):
-        print(f"File not found: {filepath}")
-        return data_dict
+    # Procura pela base em múltiplos formatos
+    filepath = None
+    for ext in ['.csv', '.xlsx', '.ods']:
+        path_test = os.path.join(data_dir, f'Matriz_Credito_Rural_DF_2017_2025{ext}')
+        if os.path.exists(path_test):
+            filepath = path_test
+            break
+            
+    if not filepath:
+        # Fallback
+        filepath = os.path.join(data_dir, 'mcdr_2024.csv')
+        if not os.path.exists(filepath):
+            print("Nenhum arquivo MCDR encontrado.")
+            return pd.DataFrame()
         
     try:
-        # Lê usando separador vírgula, encoding utf-8-sig e formato brasileiro de milhares e decimais
-        df = pd.read_csv(filepath, sep=',', encoding='utf-8-sig', decimal=',', thousands='.')
-        
+        if filepath.endswith('.csv'):
+            df = pd.read_csv(filepath, sep=';', encoding='utf-8-sig', decimal=',', thousands='.', low_memory=False)
+            if len(df.columns) == 1:
+                df = pd.read_csv(filepath, sep=',', encoding='utf-8-sig', decimal=',', thousands='.', low_memory=False)
+        elif filepath.endswith('.xlsx'):
+            df = pd.read_excel(filepath)
+        else:
+            df = pd.read_excel(filepath, engine='odf')
+            
         # Colunas financeiras e quantitativas esperadas
         cols_num = ['VLCUSTEIO', 'VLINVESTIMENTO', 'VLCOMERCIALIZACAO', 'VLINDUSTRIALIZACAO', 'AREATOTAL', 'QTDTOTAL', 'VALORTOTAL']
         
         # Limpar espaços extras em nomes de colunas por garantia
         df.columns = df.columns.str.strip()
         
+        # O Ano pode vir em várias colunas, vamos tentar padronizar para uma coluna "ANO"
+        ano_cols = [c for c in df.columns if c.upper() in ['ANO', 'ANO_EMISSAO', 'DATA_EMISSAO', 'ANO_REFERÊNCIA']]
+        if ano_cols:
+            col_ano = ano_cols[0]
+            # Se for data, tenta extrair o ano
+            if 'DATA' in col_ano.upper():
+                df['ANO'] = pd.to_datetime(df[col_ano], errors='coerce').dt.year
+            else:
+                df['ANO'] = df[col_ano]
+        else:
+            df['ANO'] = 2024 # Valor padrão se não existir
+            
+        df['ANO'] = df['ANO'].fillna(0).astype(int).astype(str)
+        df['ANO'] = df['ANO'].replace('0', 'Desconhecido')
+        
         for col in cols_num:
             if col in df.columns:
+                # Trata caso a leitura do excel/csv não tenha aplicado o decimal/milhares
+                if df[col].dtype == object:
+                    df[col] = df[col].astype(str).str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
                 
-        # 1. Totais por Finalidade (Soma geral das 4 variáveis)
-        finalidade_data = {
-            'Finalidade': ['Custeio', 'Investimento', 'Comercialização', 'Industrialização'],
-            'Valor': [
-                df['VLCUSTEIO'].sum() if 'VLCUSTEIO' in df.columns else 0,
-                df['VLINVESTIMENTO'].sum() if 'VLINVESTIMENTO' in df.columns else 0,
-                df['VLCOMERCIALIZACAO'].sum() if 'VLCOMERCIALIZACAO' in df.columns else 0,
-                df['VLINDUSTRIALIZACAO'].sum() if 'VLINDUSTRIALIZACAO' in df.columns else 0
-            ]
-        }
-        data_dict['finalidade'] = pd.DataFrame(finalidade_data)
-        
-        # 2. Totais por IF (Instituição Financeira)
-        if 'NOMEIF' in df.columns and 'VALORTOTAL' in df.columns:
-            df_if = df.groupby('NOMEIF', as_index=False)['VALORTOTAL'].sum().sort_values(by='VALORTOTAL', ascending=True)
-            data_dict['if'] = df_if
-        else:
-            data_dict['if'] = pd.DataFrame()
-            
-        # 3. Totais por Categoria e Atividade
-        if 'NOMESEGMENTOCATEGORIA' in df.columns and 'ATIVIDADE' in df.columns and 'VALORTOTAL' in df.columns:
-            df_cat = df.groupby(['NOMESEGMENTOCATEGORIA', 'ATIVIDADE'], as_index=False)['VALORTOTAL'].sum()
-            data_dict['categoria'] = df_cat
-        else:
-            data_dict['categoria'] = pd.DataFrame()
-            
-        # 4. Dados Dispersão
-        if all(c in df.columns for c in ['VALORTOTAL', 'AREATOTAL', 'QTDTOTAL', 'ATIVIDADE']):
-            df_disp = df[['VALORTOTAL', 'AREATOTAL', 'QTDTOTAL', 'ATIVIDADE']].copy()
-            # Remover zeros na área para não aglomerar distorções no eixo zero do gráfico logarítmico (se usado)
-            df_disp = df_disp[(df_disp['VALORTOTAL'] > 0) & (df_disp['AREATOTAL'] > 0)]
-            data_dict['dispersao'] = df_disp
-        else:
-            data_dict['dispersao'] = pd.DataFrame()
+        # Removendo a agregação estática, retornamos o DataFrame limpo.
+        return df
 
     except Exception as e:
         print(f"Error loading MCDR data: {e}")
-        
-    return data_dict
+        return pd.DataFrame()
 
 if __name__ == '__main__':
-    dados = load_mcdr_data()
-    for k, v in dados.items():
-        print(f"--- {k} ---")
-        if not v.empty:
-            print(v.head())
-        else:
-            print("Empty DataFrame")
+    df = load_mcdr_data()
+    print("DataFrame MCDR:")
+    print(df.head())
+    print(df.columns)
