@@ -38,6 +38,7 @@ def load_cnpo_data():
             df = df[df['UF'] == 'DF'].copy()
             
         # Trata Nulos em colunas vitais
+        # Trata Nulos em colunas vitais
         cols_str = ['TIPO DE ENTIDADE', 'ENTIDADE', 'CIDADE', 'ESCOPO', 'ATIVIDADES', 'ANO_REFERÊNCIA', 'MÊS_REFERÊNCIA']
         for c in cols_str:
             if c in df.columns:
@@ -45,6 +46,12 @@ def load_cnpo_data():
                 if 'ANO' in c.upper() or 'MÊS' in c.upper() or 'MES' in c.upper():
                     df[c] = df[c].str.replace(r'\.0$', '', regex=True)
                     df[c] = df[c].replace('nan', '')
+                if 'CIDADE' in c.upper():
+                    import unicodedata
+                    def remove_accents(input_str):
+                        nfkd_form = unicodedata.normalize('NFKD', input_str)
+                        return "".join([char for char in nfkd_form if not unicodedata.combining(char)])
+                    df[c] = df[c].apply(remove_accents).str.upper()
                 
         return df
     except Exception as e:

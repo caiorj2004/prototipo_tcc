@@ -23,10 +23,22 @@ if 'ANO_REFERÊNCIA' in df_cnpo.columns and not df_cnpo.empty:
     anos = sorted([a for a in df_cnpo['ANO_REFERÊNCIA'].unique() if a])
     anos_options += [{'label': str(a), 'value': a} for a in anos]
 
+meses_nomes = {
+    '1': 'Janeiro', '2': 'Fevereiro', '3': 'Março', '4': 'Abril',
+    '5': 'Maio', '6': 'Junho', '7': 'Julho', '8': 'Agosto',
+    '9': 'Setembro', '10': 'Outubro', '11': 'Novembro', '12': 'Dezembro',
+    '01': 'Janeiro', '02': 'Fevereiro', '03': 'Março', '04': 'Abril',
+    '05': 'Maio', '06': 'Junho', '07': 'Julho', '08': 'Agosto', '09': 'Setembro'
+}
+
 meses_options = [{'label': 'Todos', 'value': 'ALL'}]
 if 'MÊS_REFERÊNCIA' in df_cnpo.columns and not df_cnpo.empty:
-    meses = sorted([m for m in df_cnpo['MÊS_REFERÊNCIA'].unique() if m])
-    meses_options += [{'label': str(m), 'value': m} for m in meses]
+    meses = [str(m) for m in df_cnpo['MÊS_REFERÊNCIA'].unique() if str(m).strip() and str(m) != 'nan']
+    try:
+        meses = sorted(meses, key=lambda x: int(x))
+    except:
+        meses = sorted(meses)
+    meses_options += [{'label': meses_nomes.get(m, m), 'value': m} for m in meses]
 
 layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
     
@@ -208,7 +220,7 @@ def update_cnpo_dashboard(cidade, ano, mes):
     tabela = dash_table.DataTable(
         data=table_data.to_dict('records'),
         columns=[{"name": i, "id": i} for i in table_data.columns],
-        page_size=20,
+        page_size=30,
         style_table={'overflowX': 'auto', 'width': '100%'},
         style_header={'backgroundColor': '#f1f5f9', 'color': 'black', 'fontWeight': 'bold'},
         style_data={'backgroundColor': 'white', 'color': 'black', 'whiteSpace': 'normal', 'height': 'auto'},
