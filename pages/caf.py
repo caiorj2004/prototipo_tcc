@@ -14,6 +14,14 @@ dash.register_page(__name__, path='/caf', name='Módulo CAF')
 # Carregar os dados reais
 dados_caf = load_caf_data()
 
+meses_nomes = {
+    '1': 'Janeiro', '2': 'Fevereiro', '3': 'Março', '4': 'Abril',
+    '5': 'Maio', '6': 'Junho', '7': 'Julho', '8': 'Agosto',
+    '9': 'Setembro', '10': 'Outubro', '11': 'Novembro', '12': 'Dezembro',
+    '01': 'Janeiro', '02': 'Fevereiro', '03': 'Março', '04': 'Abril',
+    '05': 'Maio', '06': 'Junho', '07': 'Julho', '08': 'Agosto', '09': 'Setembro'
+}
+
 # Função auxiliar para extrair Anos e Meses únicos de uma lista de DFs
 def get_unique_options(df_dict, keys, col_name):
     opts = set()
@@ -26,11 +34,31 @@ def get_unique_options(df_dict, keys, col_name):
 
 keys_gerais = ['pf', 'pj_area', 'caracterizacao', 'atividade', 'genero', 'jovens', 'pj', 'entidade']
 anos_gerais = get_unique_options(dados_caf, keys_gerais, 'ANO')
-meses_gerais = get_unique_options(dados_caf, keys_gerais, 'MES')
 
 keys_renda = ['renda_qtd', 'renda_valor']
 anos_renda = get_unique_options(dados_caf, keys_renda, 'ANO')
-meses_renda = get_unique_options(dados_caf, keys_renda, 'MES')
+
+def get_meses_options(ano_selecionado, df_dict, keys):
+    opts = set()
+    for k in keys:
+        df = df_dict.get(k, pd.DataFrame())
+        if not df.empty and 'MES' in df.columns:
+            if ano_selecionado == 'ALL':
+                opts.update(df['MES'].dropna().unique().tolist())
+            elif 'ANO' in df.columns:
+                dff = df[df['ANO'] == str(ano_selecionado)]
+                opts.update(dff['MES'].dropna().unique().tolist())
+    
+    opts_clean = [str(x) for x in opts if str(x) not in ['Desconhecido', 'nan', '']]
+    try:
+        opts_clean = sorted(opts_clean, key=lambda x: int(x))
+    except:
+        opts_clean = sorted(opts_clean)
+        
+    options = [{'label': 'Todos', 'value': 'ALL'}]
+    for o in opts_clean:
+        options.append({'label': meses_nomes.get(o, o), 'value': o})
+    return options
 
 layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
     
@@ -59,7 +87,7 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
             html.Div(className="flex items-center gap-4", children=[
                 html.Label("Mês:", className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider"),
                 html.Div(className="w-32", children=[
-                    dcc.Dropdown(id='caf-geral-mes', options=meses_gerais, value='ALL', clearable=False, className="font-public-sans text-sm")
+                    dcc.Dropdown(id='caf-geral-mes', value='ALL', clearable=False, className="font-public-sans text-sm")
                 ])
             ])
         ])
@@ -131,7 +159,7 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
             html.Div(className="flex items-center gap-4", children=[
                 html.Label("Mês:", className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider"),
                 html.Div(className="w-32", children=[
-                    dcc.Dropdown(id='caf-renda-mes', options=meses_renda, value='ALL', clearable=False, className="font-public-sans text-sm")
+                    dcc.Dropdown(id='caf-renda-mes', value='ALL', clearable=False, className="font-public-sans text-sm")
                 ])
             ])
         ])
@@ -169,6 +197,21 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
         ])
     ])
 ])
+
+@callback(
+    Output('caf-geral-mes', 'options'),
+    Input('caf-geral-ano', 'value')
+)
+def update_meses_gerais(ano):
+    return get_meses_options(ano, dados_caf, keys_gerais)
+
+@callback(
+    Output('caf-renda-mes', 'options'),
+    Input('caf-renda-ano', 'value')
+)
+def update_meses_renda(ano):
+    return get_meses_options(ano, dados_caf, keys_renda)
+
 
 def filter_df(df, ano, mes):
     if df.empty: return df
@@ -241,6 +284,9 @@ def update_gerais(ano, mes):
         
     # Tabelas
     df_pj = filter_df(dados_caf.get('pj', pd.DataFrame()), ano, mes)
+    if not df_pj.empty and 'TOTA ATIVOS' in df_pj.columns:
+        df_pj = df_pj.drop(columns=['TOTA ATIVOS'])
+        
     table_pj = dash_table.DataTable(
         data=df_pj.to_dict('records'),
         columns=[{"name": i, "id": i} for i in df_pj.columns],

@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc, callback, Input, Output
+from dash import html, dcc, dash_table, callback, Input, Output
 import plotly.express as px
 import pandas as pd
 from data_pipeline_cnpo import load_cnpo_data
@@ -124,23 +124,14 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
                 html.P("Lista detalhada de produtores e seus escopos.", className="font-data-tabular text-data-tabular text-on-surface-variant mt-1")
             ])
         ]),
-        html.Div(className="overflow-x-auto", children=[
-            html.Table(className="w-full text-left border-collapse", children=[
-                html.Thead(html.Tr(className="bg-surface-container-low border-b border-outline-variant", children=[
-                    html.Th("Nome da Entidade", className="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider"),
-                    html.Th("Tipo de Entidade", className="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider"),
-                    html.Th("Escopo", className="p-4 font-label-sm text-on-surface-variant uppercase tracking-wider")
-                ])),
-                html.Tbody(id='cnpo-entidades-table', className="divide-y divide-outline-variant", children=[])
-            ])
-        ])
+        html.Div(id='cnpo-entidades-table-container', className="p-card-padding")
     ])
 ])
 
 @callback(
     Output('cnpo-atividades-bar', 'figure'),
     Output('cnpo-entidades-pie', 'figure'),
-    Output('cnpo-entidades-table', 'children'),
+    Output('cnpo-entidades-table-container', 'children'),
     Input('cnpo-cidade-dropdown', 'value'),
     Input('cnpo-ano-dropdown', 'value'),
     Input('cnpo-mes-dropdown', 'value')
@@ -212,14 +203,16 @@ def update_cnpo_dashboard(cidade, ano, mes):
     )
     
     # 3. Tabela de Entidades
-    table_data = dff[['ENTIDADE', 'TIPO DE ENTIDADE', 'ESCOPO']].head(100).fillna('')
+    table_data = dff[['ENTIDADE', 'TIPO DE ENTIDADE', 'ESCOPO']].fillna('')
     
-    linhas_tabela = []
-    for _, row in table_data.iterrows():
-        linhas_tabela.append(html.Tr(className="hover:bg-surface-container-lowest/50 transition-colors", children=[
-            html.Td(row['ENTIDADE'], className="p-4 font-body-sm text-on-surface"),
-            html.Td(row['TIPO DE ENTIDADE'], className="p-4 font-body-sm text-on-surface-variant"),
-            html.Td(row['ESCOPO'], className="p-4 font-body-sm text-on-surface-variant", style={"maxWidth": "300px"})
-        ]))
+    tabela = dash_table.DataTable(
+        data=table_data.to_dict('records'),
+        columns=[{"name": i, "id": i} for i in table_data.columns],
+        page_size=20,
+        style_table={'overflowX': 'auto', 'width': '100%'},
+        style_header={'backgroundColor': '#f1f5f9', 'color': 'black', 'fontWeight': 'bold'},
+        style_data={'backgroundColor': 'white', 'color': 'black', 'whiteSpace': 'normal', 'height': 'auto'},
+        style_cell={'textAlign': 'left', 'padding': '10px', 'fontFamily': 'Public Sans, sans-serif'}
+    ) if not table_data.empty else html.P("Sem dados.", className="text-on-surface-variant p-4")
         
-    return fig_bar, fig_pie, linhas_tabela
+    return fig_bar, fig_pie, tabela

@@ -171,6 +171,10 @@ def update_mcdr_dashboard(ano):
         df_disp = dff[['VALORTOTAL', 'AREATOTAL', 'QTDTOTAL', 'ATIVIDADE']].copy()
         df_disp = df_disp[(df_disp['VALORTOTAL'] > 0) & (df_disp['AREATOTAL'] > 0)]
         if not df_disp.empty:
+            # Calcular Correlação Pearson
+            corr_val = df_disp['AREATOTAL'].corr(df_disp['VALORTOTAL'])
+            corr_text = f"Correlação (r): {corr_val:.2f}" if pd.notna(corr_val) else "Correlação (r): N/A"
+            
             atividades = df_disp['ATIVIDADE'].unique()
             colors = ['#ef233c', '#2b2d42', '#8d99ae', '#d90429']
             max_qtd = df_disp['QTDTOTAL'].max()
@@ -191,6 +195,22 @@ def update_mcdr_dashboard(ano):
                         line=dict(width=1, color='white')
                     )
                 ))
+                
+            fig_disp.add_annotation(
+                x=0.02,
+                y=0.98,
+                xref="paper",
+                yref="paper",
+                text=corr_text,
+                showarrow=False,
+                font=dict(family="Public Sans", size=14, color="#111827"),
+                bgcolor="rgba(255, 255, 255, 0.9)",
+                bordercolor="#d1d5db",
+                borderwidth=1,
+                borderpad=6,
+                align="left"
+            )
+            
     fig_disp.update_layout(
         margin=dict(t=10, b=10, l=10, r=10), 
         paper_bgcolor='rgba(0,0,0,0)', 
