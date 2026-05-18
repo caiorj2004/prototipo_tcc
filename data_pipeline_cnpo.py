@@ -58,7 +58,7 @@ def load_cnpo_data():
                     df[c] = df[c].str.replace('TAQUATINGA', 'TAGUATINGA', regex=False)
                     df[c] = df[c].str.replace('TABATINGA', 'TAGUATINGA', regex=False)
                     df[c] = df[c].str.replace('SBRADINHO', 'SOBRADINHO', regex=False)
-                    df[c] = df[c].str.replace(r'PARANOA\s*-\s*DF', 'PARANOA', regex=True)
+                    df[c] = df[c].str.replace(r'PARANOA.*DF', 'PARANOA', regex=True)
                     df[c] = df[c].str.replace('PARANOA - DF', 'PARANOA', regex=False)
                 
         return df
