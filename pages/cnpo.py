@@ -215,7 +215,11 @@ def update_cnpo_dashboard(cidade, ano, mes):
     )
     
     # 3. Tabela de Entidades
-    table_data = dff[['ENTIDADE', 'TIPO DE ENTIDADE', 'ESCOPO']].fillna('')
+    cols_tabela = ['ENTIDADE', 'TIPO DE ENTIDADE', 'ESCOPO']
+    if 'ANO_REFERÊNCIA' in dff.columns: cols_tabela.append('ANO_REFERÊNCIA')
+    if 'MÊS_REFERÊNCIA' in dff.columns: cols_tabela.append('MÊS_REFERÊNCIA')
+    
+    table_data = dff[cols_tabela].fillna('')
     
     tabela = dash_table.DataTable(
         data=table_data.to_dict('records'),

@@ -55,8 +55,11 @@ def load_cnpo_data():
                     
                     df[c] = df[c].str.replace('ASA NORTE.', 'ASA NORTE', regex=False)
                     df[c] = df[c].str.replace('BRASZLANDIA', 'BRAZLANDIA', regex=False)
-                    df[c] = df[c].str.replace('PARANOA - DF', 'PARANOA', regex=False)
                     df[c] = df[c].str.replace('TAQUATINGA', 'TAGUATINGA', regex=False)
+                    df[c] = df[c].str.replace('TABATINGA', 'TAGUATINGA', regex=False)
+                    df[c] = df[c].str.replace('SBRADINHO', 'SOBRADINHO', regex=False)
+                    df[c] = df[c].str.replace(r'PARANOA\s*-\s*DF', 'PARANOA', regex=True)
+                    df[c] = df[c].str.replace('PARANOA - DF', 'PARANOA', regex=False)
                 
         return df
     except Exception as e:
