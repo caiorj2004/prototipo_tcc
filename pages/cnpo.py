@@ -220,7 +220,7 @@ def update_cnpo_dashboard(cidade, ano, mes):
     tabela = dash_table.DataTable(
         data=table_data.to_dict('records'),
         columns=[{"name": i, "id": i} for i in table_data.columns],
-        page_size=30,
+        page_size=50,
         style_table={'overflowX': 'auto', 'width': '100%'},
         style_header={'backgroundColor': '#f1f5f9', 'color': 'black', 'fontWeight': 'bold'},
         style_data={'backgroundColor': 'white', 'color': 'black', 'whiteSpace': 'normal', 'height': 'auto'},

@@ -87,7 +87,7 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
             html.Div(className="flex items-center gap-4", children=[
                 html.Label("Mês:", className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider"),
                 html.Div(className="w-32", children=[
-                    dcc.Dropdown(id='caf-geral-mes', value='ALL', clearable=False, className="font-public-sans text-sm")
+                    dcc.Dropdown(id='caf-geral-mes', options=[{'label': 'Todos', 'value': 'ALL'}], value='ALL', clearable=False, className="font-public-sans text-sm")
                 ])
             ])
         ])
@@ -159,7 +159,7 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
             html.Div(className="flex items-center gap-4", children=[
                 html.Label("Mês:", className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider"),
                 html.Div(className="w-32", children=[
-                    dcc.Dropdown(id='caf-renda-mes', value='ALL', clearable=False, className="font-public-sans text-sm")
+                    dcc.Dropdown(id='caf-renda-mes', options=[{'label': 'Todos', 'value': 'ALL'}], value='ALL', clearable=False, className="font-public-sans text-sm")
                 ])
             ])
         ])

@@ -52,6 +52,11 @@ def load_cnpo_data():
                         nfkd_form = unicodedata.normalize('NFKD', input_str)
                         return "".join([char for char in nfkd_form if not unicodedata.combining(char)])
                     df[c] = df[c].apply(remove_accents).str.upper()
+                    
+                    df[c] = df[c].str.replace('ASA NORTE.', 'ASA NORTE', regex=False)
+                    df[c] = df[c].str.replace('BRASZLANDIA', 'BRAZLANDIA', regex=False)
+                    df[c] = df[c].str.replace('PARANOA - DF', 'PARANOA', regex=False)
+                    df[c] = df[c].str.replace('TAQUATINGA', 'TAGUATINGA', regex=False)
                 
         return df
     except Exception as e:
