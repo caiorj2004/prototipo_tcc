@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc
+from dash import html, dcc, Input, Output, State, callback_context
 
 # Configuração de scripts e fontes externas
 external_scripts = [{"src": "https://cdn.tailwindcss.com?plugins=forms,container-queries"}]
@@ -147,16 +147,9 @@ sidebar = html.Aside(className="fixed left-0 top-0 h-full w-[280px] bg-emerald-9
     ]),
     
     html.Div(className="px-6 mt-auto flex flex-col gap-4", children=[
-        html.Button(className="w-full border border-secondary text-secondary hover:bg-secondary/10 transition-colors rounded-lg py-2 font-label-sm text-label-sm flex items-center justify-center gap-2", children=[
-            html.Span("download", className="material-symbols-outlined text-[18px]"),
-            "Exportar Relatório"
-        ]),
         html.Div(className="flex flex-col gap-1 mt-4", children=[
-            html.A(className="text-emerald-100/70 hover:text-white py-2 flex items-center gap-3 font-public-sans text-sm font-medium hover:bg-emerald-800/50 transition-all px-2 rounded", href="#", children=[
+            html.A(id="btn-ajuda", n_clicks=0, className="text-emerald-100/70 hover:text-white py-2 flex items-center gap-3 font-public-sans text-sm font-medium hover:bg-emerald-800/50 transition-all px-2 rounded cursor-pointer", children=[
                 html.Span("help", className="material-symbols-outlined"), "Ajuda"
-            ]),
-            html.A(className="text-emerald-100/70 hover:text-white py-2 flex items-center gap-3 font-public-sans text-sm font-medium hover:bg-emerald-800/50 transition-all px-2 rounded", href="#", children=[
-                html.Span("logout", className="material-symbols-outlined"), "Sair"
             ])
         ])
     ])
@@ -167,25 +160,90 @@ topbar = html.Header(className="bg-white dark:bg-slate-900 border-b border-slate
     html.Div(className="flex justify-between items-center w-full px-10 py-3", children=[
         html.Div(className="flex items-center gap-4", children=[
             html.Span("Painel de Indicadores", className="text-xl font-bold text-emerald-900 dark:text-emerald-400 font-public-sans tracking-tight")
-        ]),
-        html.Div(className="flex items-center gap-6", children=[
-            html.Div(className="relative hidden md:block", children=[
-                html.Span("search", className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]"),
-                dcc.Input(className="pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full text-sm font-public-sans focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors w-64", placeholder="Buscar dados...", type="text")
-            ]),
-            html.Div(className="flex items-center gap-2", children=[
-                html.Button(className="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors", children=[
-                    html.Span("notifications", className="material-symbols-outlined")
-                ]),
-                html.Button(className="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors", children=[
-                    html.Span("settings", className="material-symbols-outlined")
-                ])
-            ])
         ])
     ])
 ])
 
 # ----------------- LAYOUT PRINCIPAL -----------------
+# ----------------- MODAL DE AJUDA -----------------
+modal_ajuda = html.Div(
+    id="modal-ajuda",
+    className="hidden fixed inset-0 bg-black/50 z-[100] items-center justify-center p-4",
+    children=[
+        html.Div(
+            className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden relative border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200",
+            children=[
+                # Header do Modal
+                html.Div(
+                    className="flex justify-between items-center px-6 py-4 border-b border-slate-200 dark:border-slate-800",
+                    children=[
+                        html.H2("Guia do Painel de Indicadores (TCC)", className="text-xl font-bold text-emerald-900 dark:text-emerald-400 font-public-sans"),
+                    ]
+                ),
+                
+                # Conteúdo do Modal com Scroll
+                html.Div(
+                    className="flex-1 overflow-y-auto p-6 space-y-6 text-slate-700 dark:text-slate-300 font-public-sans",
+                    children=[
+                        html.Div(children=[
+                            html.H3("Propósito", className="text-lg font-semibold text-emerald-800 dark:text-emerald-300 mb-2"),
+                            html.P(
+                                "Este painel é parte integrante de um Trabalho de Conclusão de Curso focado em analisar a desigualdade estrutural e financeira na Agricultura Familiar do Distrito Federal.",
+                                className="text-sm leading-relaxed"
+                            )
+                        ]),
+                        html.Div(children=[
+                            html.H3("Como Navegar", className="text-lg font-semibold text-emerald-800 dark:text-emerald-300 mb-2"),
+                            html.P(
+                                "Utilize o menu lateral para transitar entre as diferentes bases de dados governamentais. Utilize os filtros no topo de cada página para selecionar o recorte temporal desejado.",
+                                className="text-sm leading-relaxed"
+                            )
+                        ]),
+                        html.Div(children=[
+                            html.H3("Bases de Dados (Fontes)", className="text-lg font-semibold text-emerald-800 dark:text-emerald-300 mb-3"),
+                            html.Div(className="space-y-4 pl-1", children=[
+                                html.Div(children=[
+                                    html.H4("Censo Agro (2017)", className="text-sm font-bold text-slate-800 dark:text-slate-200"),
+                                    html.P("Dados demográficos e estruturais da base produtiva (IBGE).", className="text-sm text-slate-600 dark:text-slate-400")
+                                ]),
+                                html.Div(children=[
+                                    html.H4("IBGE (2024)", className="text-sm font-bold text-slate-800 dark:text-slate-200"),
+                                    html.P("Estimativas e projeções recentes do setor.", className="text-sm text-slate-600 dark:text-slate-400")
+                                ]),
+                                html.Div(children=[
+                                    html.H4("CNPO", className="text-sm font-bold text-slate-800 dark:text-slate-200"),
+                                    html.P("Cadastro Nacional de Produtores Orgânicos (MAPA).", className="text-sm text-slate-600 dark:text-slate-400")
+                                ]),
+                                html.Div(children=[
+                                    html.H4("CAF", className="text-sm font-bold text-slate-800 dark:text-slate-200"),
+                                    html.P("Cadastro Nacional da Agricultura Familiar, evidenciando formalização, gênero, juventude e renda (MDA).", className="text-sm text-slate-600 dark:text-slate-400")
+                                ]),
+                                html.Div(children=[
+                                    html.H4("Crédito Rural (MCDR)", className="text-sm font-bold text-slate-800 dark:text-slate-200"),
+                                    html.P("Matriz de Dados do Crédito Rural do Banco Central, demonstrando a alocação de recursos, concentração bancária e finalidade do crédito.", className="text-sm text-slate-600 dark:text-slate-400")
+                                ])
+                            ])
+                        ])
+                    ]
+                ),
+                
+                # Rodapé do Modal
+                html.Div(
+                    className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 flex justify-end",
+                    children=[
+                        html.Button(
+                            "Fechar",
+                            id="btn-fechar-ajuda",
+                            className="bg-emerald-800 hover:bg-emerald-950 text-white font-medium rounded-lg px-5 py-2.5 text-sm transition-colors cursor-pointer",
+                            n_clicks=0
+                        )
+                    ]
+                )
+            ]
+        )
+    ]
+)
+
 app.layout = html.Div(
     className="font-body-md text-body-md text-on-background min-h-screen bg-background flex",
     # Usamos 100vw para forçar a largura a ser EXATAMENTE o tamanho da janela do navegador
@@ -206,9 +264,32 @@ app.layout = html.Div(
                     ]
                 )
             ]
-        )
+        ),
+        modal_ajuda
     ]
 )
+
+# Callback para alternar a visibilidade do modal de ajuda
+@app.callback(
+    Output("modal-ajuda", "className"),
+    Input("btn-ajuda", "n_clicks"),
+    Input("btn-fechar-ajuda", "n_clicks"),
+    State("modal-ajuda", "className"),
+    prevent_initial_call=True
+)
+def toggle_modal(n_ajuda, n_fechar, current_class):
+    ctx = callback_context
+    if not ctx.triggered:
+        return current_class
+    
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    
+    if trigger_id == "btn-ajuda":
+        return "fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4"
+    elif trigger_id == "btn-fechar-ajuda":
+        return "hidden fixed inset-0 bg-black/50 z-[100] items-center justify-center p-4"
+    
+    return current_class
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=7860, debug=True)
