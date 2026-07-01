@@ -188,7 +188,11 @@ modal_ajuda = html.Div(
                         html.Div(children=[
                             html.H3("Propósito", className="text-lg font-semibold text-emerald-800 dark:text-emerald-300 mb-2"),
                             html.P(
-                                "Este painel é parte integrante de um Trabalho de Conclusão de Curso focado em analisar a desigualdade estrutural e financeira na Agricultura Familiar do Distrito Federal.",
+                                "Este painel interativo foi desenvolvido para combater a assimetria de informação no meio rural do Distrito Federal, servindo como uma ferramenta de transparência e suporte à governança baseada em dados (data-driven policymaking). O projeto visa auxiliar gestores públicos (GDF, Emater-DF) e a sociedade civil na alocação otimizada de recursos e na calibração de políticas públicas de assistência técnica e compras institucionais.",
+                                className="text-sm leading-relaxed mb-4"
+                            ),
+                            html.P(
+                                "Paralelamente, este dashboard integra os resultados da pesquisa de Trabalho de Conclusão de Curso (TCC) em Ciência de Dados e IA (IESB), que aplica técnicas de aprendizado não supervisionado (Clustering Socioespacial) para criar uma tipologia inédita dos territórios rurais do DF, revelando disparidades socioeconômicas frequentemente camufladas por indicadores agregados.",
                                 className="text-sm leading-relaxed"
                             )
                         ]),
