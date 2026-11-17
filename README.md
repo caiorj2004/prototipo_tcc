@@ -18,7 +18,7 @@ O sistema adota uma arquitetura *Python-first* focada em desempenho, modularidad
 
 ## 🚀 Módulos e Análises Disponíveis
 
-O dashboard é estruturado em uma aplicação multi-página (`dash.page_container`), cobrindo cinco frentes estratégicas de dados públicos:
+O dashboard é estruturado em uma aplicação multi-página (`dash.page_container`), cobrindo frentes estratégicas de dados públicos e os resultados do TCC:
 
 1. **Censo Agropecuário 2017 (`/censo`)**
    * Análise demográfica por cor/raça, valor de produção e quantidade física.
@@ -43,6 +43,20 @@ O dashboard é estruturado em uma aplicação multi-página (`dash.page_containe
    * Dados do Banco Central sobre financiamento agropecuário.
    * Distribuição por finalidade (custeio, investimento, comercialização).
    * Concentração bancária e gráfico de dispersão de intensidade de capital com cálculo automático da **Correlação de Pearson ($r$)**.
+
+6. **Tipologia Rural (TCC) (`/tipologia`)**
+   * Resultados do TCC (IESB): clustering de 49 segmentos (RA × subpopulação) da PDAD Rural 2022, modelo principal M2, K = 3.
+   * Mapa das RAs por grupo, perfil dos grupos com IC 95%, validação externa, tabela de segmentos, comparação de modelos e estabilidade.
+   * Aviso de leitura: a estrutura é um gradiente de urbanização formal, não tipos naturais; os grupos são hipóteses.
+
+7. **PDAD Rural 2022 (`/pdad-rural`)**
+   * Análise exploratória ponderada: amostra e população, pirâmide etária, renda, subpopulações e correlações.
+
+## Dados e execução
+
+* Páginas do TCC leem tabelas agregadas em `dados_tcc/` (sem microdados; geradas por `app/gerar_tabelas_dash.py` no repositório `pdad_tipologia_cluster`). Pasta alterável por `DADOS_TCC_DIR`.
+* Local: `pip install -r requirements.txt && python app.py` (porta `PORT`, padrão 7860; `DASH_DEBUG=1` ativa o modo debug).
+* Produção: `gunicorn app:server` (ver `Dockerfile`).
 
 ---
 

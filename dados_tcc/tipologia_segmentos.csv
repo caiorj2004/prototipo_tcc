@@ -1,0 +1,50 @@
+ra,subpopulacao,grupo,amostra_n,dom_expandidos,renda_pc,escolaridade,agua,saneamento,pavimentacao,banda_larga,coligacao,situacao
+Brazlândia,Agr. Familiar,C,191,4203,1428,7.9,13,76,24,76,0.79,E
+Brazlândia,Assentamento,C,48,283,1580,9.3,0,92,23,73,0.65,E
+Brazlândia,Moradia e Lazer,A,277,4601,853,9.2,72,90,72,82,0.86,E
+Ceilândia,Agr. Empresarial,C,195,2370,1048,9.3,4,95,32,80,0.78,E
+Ceilândia,Agr. Familiar,C,121,2663,1705,7.4,4,90,25,69,0.79,E
+Fercal,Agr. Empresarial,B,7,66,627,6.3,14,57,0,29,0.76,NC
+Fercal,Agr. Familiar,B,50,891,840,8.4,74,48,4,66,0.71,E
+Fercal,Assentamento,B,29,60,815,8.5,55,41,10,76,0.7,E
+Gama,Agr. Empresarial,C,250,3598,935,8.6,54,78,21,62,0.65,E
+Gama,Agr. Familiar,C,81,735,870,8.3,2,84,6,63,0.72,E
+Gama,Moradia e Lazer,A,212,3752,1089,9.9,64,85,43,80,0.85,E
+Itapoã,Agr. Empresarial,C,41,584,696,9.2,2,68,10,83,0.75,E
+Lago Norte,Moradia e Lazer,C,51,218,2757,11.8,18,85,16,88,0.72,E
+Núcleo Bandeirante,Moradia e Lazer,A,5,73,868,6.8,80,80,80,80,0.83,NC
+Paranoá,Agr. Empresarial,B,97,1382,1018,8.4,27,69,24,54,0.68,E
+Paranoá,Agr. Familiar,B,205,1483,838,7.7,42,58,13,60,0.78,E
+Paranoá,Assentamento,A,41,179,1070,8.4,83,71,78,76,0.83,E
+Paranoá,Moradia e Lazer,B,95,2295,651,7.9,0,32,11,75,0.79,E
+Park Way,Agr. Familiar,A,141,595,624,8.9,79,78,25,71,0.86,E
+Park Way,Assentamento,C,49,106,818,10.3,6,80,2,67,0.79,E
+Planaltina,Agr. Empresarial,B,194,1828,825,7.9,43,45,4,58,0.73,E
+Planaltina,Agr. Familiar,C,270,4813,992,8.0,60,36,25,77,0.66,E
+Planaltina,Assentamento,B,124,258,650,6.9,14,40,1,49,0.79,E
+Planaltina,Moradia e Lazer,B,32,486,1034,6.3,34,38,6,41,0.79,E
+Recanto das Emas,Agr. Empresarial,C,28,403,1201,8.5,75,96,29,50,0.43,F
+Recanto das Emas,Agr. Familiar,B,49,445,867,8.3,20,84,4,69,0.62,E
+Riacho Fundo,Agr. Familiar,A,222,555,1243,10.1,61,75,57,83,0.87,E
+Riacho Fundo,Moradia e Lazer,A,5,73,252,11.1,80,80,80,80,0.83,NC
+Riacho Fundo II,Assentamento,C,69,351,752,9.8,33,83,12,88,0.66,E
+Riacho Fundo II,Moradia e Lazer,A,71,1257,691,9.3,30,84,39,83,0.83,E
+SCIA,Agr. Familiar,B,50,125,556,8.3,24,86,44,78,0.42,F
+Samambaia,Agr. Empresarial,C,12,146,1409,8.0,17,100,42,75,0.59,F
+Samambaia,Agr. Familiar,B,6,132,814,9.0,17,100,0,50,0.54,NC
+Samambaia,Moradia e Lazer,B,19,316,449,7.7,11,11,11,42,0.79,E
+Santa Maria,Agr. Empresarial,A,46,662,1199,11.6,33,82,85,89,0.87,E
+Sobradinho,Agr. Empresarial,C,79,744,1501,10.9,27,87,34,73,0.57,F
+Sobradinho,Moradia e Lazer,B,152,2307,731,8.6,4,42,2,58,0.79,E
+Sobradinho II,Agr. Empresarial,C,35,330,1038,9.7,26,80,3,77,0.74,E
+Sobradinho II,Agr. Familiar,C,22,392,4543,10.5,24,82,0,68,0.69,E
+Sobradinho II,Moradia e Lazer,A,182,2763,783,10.1,55,69,19,83,0.7,E
+Sol Nascente/Pôr do Sol,Assentamento,B,31,182,982,8.6,32,68,0,61,0.71,E
+Sol Nascente/Pôr do Sol,Moradia e Lazer,B,41,681,707,7.8,93,88,41,73,0.35,F
+São Sebastião,Agr. Empresarial,B,218,3106,863,7.3,21,6,1,55,0.79,E
+São Sebastião,Assentamento,B,237,1034,867,8.0,9,27,2,74,0.79,E
+São Sebastião,Moradia e Lazer,B,305,7369,962,8.5,4,29,4,73,0.79,E
+Taguatinga,Agr. Empresarial,C,8,97,1615,10.5,12,62,50,88,0.6,NC
+Taguatinga,Moradia e Lazer,A,11,183,326,10.9,27,64,36,91,0.75,E
+Vicente Pires,Moradia e Lazer,B,358,5233,841,7.7,3,88,5,66,0.8,E
+Águas Claras,Moradia e Lazer,A,5,73,1825,10.4,0,80,20,100,0.65,NC

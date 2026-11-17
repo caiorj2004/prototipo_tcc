@@ -1,3 +1,6 @@
 *.ods filter=lfs diff=lfs merge=lfs -text
 *.xlsx filter=lfs diff=lfs merge=lfs -text
 *.csv filter=lfs diff=lfs merge=lfs -text
+
+# Tabelas agregadas do TCC (dados_tcc/) são pequenas e ficam no Git comum, sem LFS
+dados_tcc/*.csv -filter -diff -merge text
