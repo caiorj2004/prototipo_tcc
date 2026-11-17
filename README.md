@@ -76,3 +76,14 @@ O dashboard é estruturado em uma aplicação multi-página (`dash.page_containe
 ├── requirements.txt           # Dependências do projeto (Dash, Pandas, Plotly, Openpyxl, Odfpy)
 ├── pages/                     # Módulos visuais de cada aba (Censo, IBGE, CNPO, CAF, MCDR)
 └── data_pipeline_*.py         # Scripts de ingestão, limpeza e tratamento de dados por fonte
+
+## Dados fora do Git (S3) e teste
+
+Em ambientes com a regra "sem dados no repositório" (ex.: DataIESB), `dados_tcc/` fica fora do Git e é sincronizado pelo S3:
+
+```bash
+aws s3 sync ./dados_tcc/ s3://dataieb-tcc-caio-agrotec/dados_tcc/                      # subir
+aws s3 sync s3://dataieb-tcc-caio-agrotec/dados_tcc/ ./dados_tcc/                      # baixar na instância
+```
+
+No Hugging Face Space, `dados_tcc/` vai dentro do repositório (o Space não acessa o S3). Teste rápido: `pip install pytest && pytest -q tests`.
