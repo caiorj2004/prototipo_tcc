@@ -1,6 +1,8 @@
 import pandas as pd
 import os
 
+from functools import lru_cache
+
 def clean_valor_pecuaria(x):
     if pd.isna(x):
         return x
@@ -9,36 +11,41 @@ def clean_valor_pecuaria(x):
         return int(round(x * 1000))
     return int(x)
 
+@lru_cache(maxsize=1)
 def load_data_2024():
     """
-    Carrega e limpa os dados de Agricultura e Pecuária de 2024.
+    Carrega e limpa os dados de Agricultura e Pecuária de 2024 em Parquet ou Excel.
     Retorna um dicionário com os DataFrames prontos para uso.
     """
     base_dir = os.path.dirname(os.path.abspath(__file__))
     data_dir = os.path.join(base_dir, 'data')
     
-    file_agri = os.path.join(data_dir, 'Agricultura - Valor da produção (2024).xlsx')
-    file_pec = os.path.join(data_dir, 'Pecuária - Rebanhos (2024).xlsx')
+    file_agri_pq = os.path.join(data_dir, 'Agricultura_Valor_producao_2024.parquet')
+    file_agri_xl = os.path.join(data_dir, 'Agricultura - Valor da produção (2024).xlsx')
+    
+    file_pec_pq = os.path.join(data_dir, 'Pecuaria_Rebanhos_2024.parquet')
+    file_pec_xl = os.path.join(data_dir, 'Pecuária - Rebanhos (2024).xlsx')
     
     try:
-        df_agri = pd.read_excel(file_agri)
-        # Ordenar do maior para o menor valor e pegar top 10
+        if os.path.exists(file_agri_pq):
+            df_agri = pd.read_parquet(file_agri_pq)
+        else:
+            df_agri = pd.read_excel(file_agri_xl)
         if 'Valor' in df_agri.columns:
             df_agri = df_agri.sort_values(by='Valor', ascending=False).reset_index(drop=True)
-            
     except Exception as e:
-        print(f"Erro ao ler {file_agri}: {e}")
+        print(f"Erro ao ler agricultura 2024: {e}")
         df_agri = pd.DataFrame(columns=['Produto', 'Valor'])
         
     try:
-        df_pec = pd.read_excel(file_pec)
-        # Tratar os valores de cabeças de gado
+        if os.path.exists(file_pec_pq):
+            df_pec = pd.read_parquet(file_pec_pq)
+        else:
+            df_pec = pd.read_excel(file_pec_xl)
         if 'Valor' in df_pec.columns:
             df_pec['Valor'] = df_pec['Valor'].apply(clean_valor_pecuaria)
-        # Limpeza visual de caracteres, se necessário (o pandas geralmente já faz o handle correto de utf-8 via openpyxl)
-            
     except Exception as e:
-        print(f"Erro ao ler {file_pec}: {e}")
+        print(f"Erro ao ler pecuária 2024: {e}")
         df_pec = pd.DataFrame(columns=['Produto', 'Valor', 'Unidade'])
         
     return {

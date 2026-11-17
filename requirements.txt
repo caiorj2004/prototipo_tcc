@@ -4,4 +4,5 @@ pandas>=2.2,<4
 numpy>=2.0
 odfpy>=1.4
 openpyxl>=3.1
+pyarrow>=15
 gunicorn>=22

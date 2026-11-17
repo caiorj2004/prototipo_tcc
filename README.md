@@ -54,6 +54,9 @@ O dashboard é estruturado em uma aplicação multi-página (`dash.page_containe
 
 ## Dados e execução
 
+* **Parquet:** `python convert_to_parquet.py` converte as bases de `data/` (CAF, CNPO, MCDR, IBGE, Censo) para Parquet; os pipelines usam o Parquet quando existe e o arquivo original como alternativa (resultados idênticos). Os Parquets ficam no Git LFS.
+* Microdados da PDAD **nunca** entram no repositório (`.gitignore`).
+
 * Páginas do TCC leem tabelas agregadas em `dados_tcc/` (sem microdados; geradas por `app/gerar_tabelas_dash.py` no repositório `pdad_tipologia_cluster`). Pasta alterável por `DADOS_TCC_DIR`.
 * Local: `pip install -r requirements.txt && python app.py` (porta `PORT`, padrão 7860; `DASH_DEBUG=1` ativa o modo debug).
 * Produção: `gunicorn app:server` (ver `Dockerfile`).

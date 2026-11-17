@@ -1,83 +1,68 @@
-import pandas as pd
 import os
+import unicodedata
+import pandas as pd
 from functools import lru_cache
+
+COLS_DROP = ['ARQUIVO', 'ABA', 'TITULO', 'NENHUMA OPÇÃO', 'PREENCHIMENTO']
+ALVOS = [('LOCALIDADE AREA PF', 'pf'), ('LOCALIDADE AREA PJ', 'pj_area'), ('CARACTERIZA', 'caracterizacao'),
+         ('ATIVIDADE', 'atividade'), ('GENERO', 'genero'), ('JOVENS', 'jovens'), ('JURÍDICO', 'pj'),
+         ('ENTIDADES', 'entidade'), ('RENDA QUANTIDADE', 'renda_qtd'), ('RENDA VALOR', 'renda_valor')]
+
+def _nfc(s):
+    return unicodedata.normalize('NFC', s).upper()
+
+def _limpa(df):
+    df = df.drop(columns=[c for c in COLS_DROP if c in df.columns], errors='ignore')
+    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+    for c in ['ANO', 'MES']:
+        if c in df.columns:
+            df[c] = df[c].fillna(0).astype(str).str.replace(r'\.0$', '', regex=True)
+            df[c] = df[c].replace(['0', 'nan', '0.0'], 'Desconhecido')
+    if 'UF' in df.columns:
+        df = df[df['UF'] == 'DF'].copy()
+    return df
+
+def _fontes(data_dir):
+    """Retorna {nome da aba (maiúsculo): função que lê a aba}. Usa Parquet (caf_sheet_*.parquet) se existir; senão o Excel/ODS."""
+    pq = {}
+    if os.path.isdir(data_dir):
+        for f in sorted(os.listdir(data_dir)):
+            if f.startswith('caf_sheet_') and f.endswith('.parquet'):
+                nome = _nfc(f[len('caf_sheet_'):-len('.parquet')].replace('_', ' '))
+                pq[nome] = (lambda p: (lambda: pd.read_parquet(p)))(os.path.join(data_dir, f))
+    if pq:
+        return pq
+    caminho = os.path.join(data_dir, 'CAF_TRATADO_COMPLETO.xlsx')
+    eng = None
+    if not os.path.exists(caminho):
+        caminho = os.path.join(data_dir, 'CAF 02 2026.ods'); eng = 'odf'
+        if not os.path.exists(caminho):
+            return {}
+    xl = pd.ExcelFile(caminho, engine=eng)
+    return {_nfc(s): (lambda s=s: pd.read_excel(caminho, sheet_name=s, engine=eng)) for s in xl.sheet_names}
 
 @lru_cache(maxsize=1)
 def load_caf_data(data_dir='data/'):
-    """
-    Carrega o arquivo CAF consolidado e retorna um dicionário de DataFrames limpos.
-    """
-    filepath = os.path.join(data_dir, 'CAF_TRATADO_COMPLETO.xlsx')
+    """Carrega a base CAF (abas em Parquet ou Excel/ODS) e retorna um dicionário de DataFrames limpos."""
     data_dict = {}
-    
-    if not os.path.exists(filepath):
-        # Fallback
-        filepath = os.path.join(data_dir, 'CAF 02 2026.ods')
-        if not os.path.exists(filepath):
-            print(f"File not found: CAF_TRATADO_COMPLETO.xlsx or fallback")
-            return data_dict
-            
     try:
-        if filepath.endswith('.xlsx'):
-            xl = pd.ExcelFile(filepath)
-        else:
-            xl = pd.ExcelFile(filepath, engine='odf')
-            
-        sheet_names = xl.sheet_names
-        cols_to_drop = ['ARQUIVO', 'ABA', 'TITULO', 'NENHUMA OPÇÃO', 'PREENCHIMENTO']
-        
-        def get_sheet(target_sheet, key_name):
-            for s in sheet_names:
-                # Ignorar resumos como solicitado
-                if s.upper() in ['RESUMO UF', 'RESUMO - REGIÃO']:
+        fontes = _fontes(data_dir)
+        if not fontes:
+            print("CAF: arquivo não encontrado (CAF_TRATADO_COMPLETO.xlsx ou parquet).")
+            return data_dict
+        for alvo, chave in ALVOS:
+            data_dict[chave] = pd.DataFrame()
+            for nome, leitor in fontes.items():
+                if nome in ('RESUMO UF', 'RESUMO - REGIÃO'):
                     continue
-                    
-                if target_sheet.upper() in s.upper():
-                    if filepath.endswith('.xlsx'):
-                        df = pd.read_excel(filepath, sheet_name=s)
-                    else:
-                        df = pd.read_excel(filepath, engine='odf', sheet_name=s)
-                        
-                    # Drop colunas de controle interno
-                    df = df.drop(columns=[c for c in cols_to_drop if c in df.columns], errors='ignore')
-                    
-                    # Remover colunas unnamed
-                    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
-                    
-                    # Padronizar colunas ANO e MES para string e tirar .0
-                    for c in ['ANO', 'MES']:
-                        if c in df.columns:
-                            df[c] = df[c].fillna(0).astype(str).str.replace(r'\.0$', '', regex=True)
-                            df[c] = df[c].replace(['0', 'nan', '0.0'], 'Desconhecido')
-                    
-                    if 'UF' in df.columns:
-                        df = df[df['UF'] == 'DF'].copy()
-                        
-                    data_dict[key_name] = df
-                    return
-            data_dict[key_name] = pd.DataFrame()
-
-        get_sheet('LOCALIDADE AREA PF', 'pf')
-        get_sheet('LOCALIDADE AREA PJ', 'pj_area')
-        get_sheet('CARACTERIZA', 'caracterizacao')
-        get_sheet('ATIVIDADE', 'atividade')
-        get_sheet('GENERO', 'genero')
-        get_sheet('JOVENS', 'jovens')
-        get_sheet('JURÍDICO', 'pj')
-        get_sheet('ENTIDADES', 'entidade')
-        get_sheet('RENDA QUANTIDADE', 'renda_qtd')
-        get_sheet('RENDA VALOR', 'renda_valor')
-        
+                if _nfc(alvo) in nome:
+                    data_dict[chave] = _limpa(leitor())
+                    break
     except Exception as e:
-        print(f"Error loading CAF data: {e}")
-        
+        print(f"Erro ao carregar CAF: {e}")
     return data_dict
 
 if __name__ == '__main__':
-    dados = load_caf_data()
-    for k, v in dados.items():
+    for k, v in load_caf_data().items():
         print(f"--- {k} ---")
-        if not v.empty:
-            print(v.head(2))
-        else:
-            print("Empty DataFrame")
+        print(v.head(2) if not v.empty else "Empty DataFrame")

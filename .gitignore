@@ -4,3 +4,9 @@ __pycache__/
 .venv/
 .vscode/
 .DS_Store
+
+# Dados brutos e microdados nunca vão para o Git
+scratch/
+data/pdad_*
+data/shape_df_extracao/
+data/regioes_administrativas*

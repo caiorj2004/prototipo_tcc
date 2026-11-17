@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc, dash_table, callback, Input, Output
+from dash import html, dcc, dash_table, callback, Input, Output, State
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
@@ -8,10 +8,11 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data_pipeline_caf import load_caf_data
+from components import render_chart_footer, VIRIDIS_PALETTE
 
-dash.register_page(__name__, path='/caf', name='Módulo CAF')
+dash.register_page(__name__, path='/caf', name='CAF')
 
-# Carregar os dados reais
+# Carregar os dados reais otimizados em Parquet
 dados_caf = load_caf_data()
 
 meses_nomes = {
@@ -22,7 +23,6 @@ meses_nomes = {
     '05': 'Maio', '06': 'Junho', '07': 'Julho', '08': 'Agosto', '09': 'Setembro'
 }
 
-# Função auxiliar para extrair Anos e Meses únicos de uma lista de DFs
 def get_unique_options(df_dict, keys, col_name):
     opts = set()
     for k in keys:
@@ -60,23 +60,23 @@ def get_meses_options(ano_selecionado, df_dict, keys):
         options.append({'label': meses_nomes.get(o, o), 'value': o})
     return options
 
-layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
+layout = html.Div(className="w-full p-6 md:p-8 bg-background font-public-sans", children=[
     
-    # Header
-    html.Div(className="mb-8 flex items-end justify-between", children=[
+    # Header com nome "CAF" e especificidade do dataset
+    html.Div(className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4", children=[
         html.Div([
-            html.H1("Cadastro Nacional da Agricultura Familiar (CAF)", className="font-h1 text-h1 text-primary"),
-            html.P("Painel de acompanhamento do perfil, atividade e renda dos inscritos no CAF.", className="font-body-lg text-body-lg text-on-surface-variant mt-2")
+            html.H1("Cadastro Nacional da Agricultura Familiar (CAF)", className="text-2xl md:text-3xl font-bold text-primary tracking-tight"),
+            html.P("Painel de acompanhamento do perfil, atividade e renda dos inscritos no Cadastro Nacional da Agricultura Familiar no Distrito Federal (MDA / CAF).", className="text-sm md:text-base text-on-surface-variant mt-2")
         ]),
-        html.Div(className="flex items-center gap-2 text-sm text-on-surface-variant font-data-tabular", children=[
-            html.Span("assignment", className="material-symbols-outlined text-[18px]"),
+        html.Div(className="flex items-center gap-2 text-sm text-on-surface-variant font-data-tabular shrink-0", children=[
+            html.Span("assignment", className="material-symbols-outlined text-[18px] text-emerald-700 dark:text-emerald-400"),
             html.Span("Fonte: MDA / CAF (Distrito Federal)")
         ])
     ]),
     
     # Filtros Gerais
-    html.Div(className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding mb-8", children=[
-        html.H3("Filtros Gerais (Perfil e Atividade)", className="font-label-lg text-on-surface mb-4"),
+    html.Div(className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding mb-8 shadow-sm", children=[
+        html.H3("Filtros Gerais (Perfil e Atividade)", className="font-bold text-slate-900 dark:text-white mb-4"),
         html.Div(className="flex flex-wrap items-center gap-6", children=[
             html.Div(className="flex items-center gap-4", children=[
                 html.Label("Ano:", className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider"),
@@ -95,60 +95,67 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
     
     # Linha 1: Geral e Caracterização
     html.Div(className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full mb-6", children=[
-        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
-            html.H3("Geral: Pessoa Física vs Jurídica", className="font-label-lg text-on-surface mb-2"),
-            html.Div(className="flex-1 min-h-[300px]", children=[
+        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col shadow-sm", children=[
+            html.H3("Geral: Pessoa Física vs Jurídica", className="font-bold text-slate-900 dark:text-white mb-2"),
+            html.Div(className="flex-1 min-h-[300px] mb-2", children=[
                 dcc.Graph(id='caf-fig-geral', style={'height': '100%', 'width': '100%'})
-            ])
-        ]),
-        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
-            html.H3("Caracterização: Minorias e Assentados", className="font-label-lg text-on-surface mb-2"),
-            html.Div(className="flex-1 min-h-[300px]", children=[
-                dcc.Graph(id='caf-fig-carac', style={'height': '100%', 'width': '100%'})
-            ])
-        ])
-    ]),
-    
-    # Linha 2: Gênero, Jovens e Atividade
-    html.Div(className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-6", children=[
-        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
-            html.H3("Gênero Global", className="font-label-lg text-on-surface mb-2 text-center"),
-            html.Div(className="flex-1 min-h-[250px]", children=[
-                dcc.Graph(id='caf-fig-genero-global', style={'height': '100%', 'width': '100%'})
-            ])
-        ]),
-        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
-            html.H3("Distribuição de Jovens (16-29)", className="font-label-lg text-on-surface mb-2 text-center"),
-            html.Div(className="flex-1 min-h-[250px]", children=[
-                dcc.Graph(id='caf-fig-genero-jovens', style={'height': '100%', 'width': '100%'})
-            ])
-        ]),
-        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
-            html.H3("Áreas de Atividade", className="font-label-lg text-on-surface mb-2 text-center"),
-            html.Div(className="flex-1 min-h-[250px]", children=[
-                dcc.Graph(id='caf-fig-atividade', style={'height': '100%', 'width': '100%'})
-            ])
-        ])
-    ]),
-    
-    # DataTables
-    html.Div(className="w-full mb-10", children=[
-        html.H2("Detalhamento Institucional", className="font-h3 text-h3 text-primary mb-4"),
-        html.Div(className="grid grid-cols-1 gap-6 w-full", children=[
-            html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col overflow-hidden", children=[
-                html.H3("Pessoas Jurídicas Registradas", className="font-label-lg text-on-surface mb-4"),
-                html.Div(id='caf-table-pj')
             ]),
-            html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col overflow-hidden", children=[
-                html.H3("Entidades Emissoras", className="font-label-lg text-on-surface mb-4"),
-                html.Div(id='caf-table-entidade')
+            render_chart_footer(source="MDA / CAF", ref_date="2024", note="Total de cadastros no DF.", download_id="btn-download-caf-geral")
+        ]),
+        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col shadow-sm", children=[
+            html.H3("Caracterização: Minorias e Assentados", className="font-bold text-slate-900 dark:text-white mb-2"),
+            html.Div(className="flex-1 min-h-[300px] mb-2", children=[
+                dcc.Graph(id='caf-fig-carac', style={'height': '100%', 'width': '100%'})
+            ]),
+            render_chart_footer(source="MDA / CAF", ref_date="2024", note="Perfil dos produtores inscritos.", download_id="btn-download-caf-carac")
+        ])
+    ]),
+    
+    # Linha 2: Gênero, Jovens e Atividade (Cartões Individuais com CSVs Granulares)
+    html.Div(className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-6", children=[
+        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col shadow-sm", children=[
+            html.H3("Gênero Global", className="font-bold text-slate-900 dark:text-white mb-2 text-center text-sm"),
+            html.Div(className="flex-1 min-h-[250px] mb-2", children=[
+                dcc.Graph(id='caf-fig-genero-global', style={'height': '100%', 'width': '100%'})
+            ]),
+            render_chart_footer(source="MDA / CAF", ref_date="2024", note="Distribuição por gênero.", download_id="btn-download-caf-genero")
+        ]),
+        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col shadow-sm", children=[
+            html.H3("Distribuição de Jovens (16-29)", className="font-bold text-slate-900 dark:text-white mb-2 text-center text-sm"),
+            html.Div(className="flex-1 min-h-[250px] mb-2", children=[
+                dcc.Graph(id='caf-fig-genero-jovens', style={'height': '100%', 'width': '100%'})
+            ]),
+            render_chart_footer(source="MDA / CAF", ref_date="2024", note="Jovens produtores rurais.", download_id="btn-download-caf-jovens")
+        ]),
+        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col shadow-sm", children=[
+            html.H3("Áreas de Atividade", className="font-bold text-slate-900 dark:text-white mb-2 text-center text-sm"),
+            html.Div(className="flex-1 min-h-[250px] mb-2", children=[
+                dcc.Graph(id='caf-fig-atividade', style={'height': '100%', 'width': '100%'})
+            ]),
+            render_chart_footer(source="MDA / CAF", ref_date="2024", note="Segmentos de atividade agrícola.", download_id="btn-download-caf-atividade")
+        ])
+    ]),
+    
+    # DataTables com Exportação CSV Granular
+    html.Div(className="w-full mb-10", children=[
+        html.H2("Detalhamento Institucional", className="text-xl font-bold text-primary mb-4"),
+        html.Div(className="grid grid-cols-1 gap-6 w-full", children=[
+            html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col overflow-hidden shadow-sm", children=[
+                html.H3("Pessoas Jurídicas Registradas", className="font-bold text-slate-900 dark:text-white mb-4"),
+                html.Div(id='caf-table-pj', className="mb-4"),
+                render_chart_footer(source="MDA / CAF", ref_date="2024", note="Cooperativas e associações rurais.", download_id="btn-download-caf-pj")
+            ]),
+            html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col overflow-hidden shadow-sm", children=[
+                html.H3("Entidades Emissoras", className="font-bold text-slate-900 dark:text-white mb-4"),
+                html.Div(id='caf-table-entidade', className="mb-4"),
+                render_chart_footer(source="MDA / CAF", ref_date="2024", note="Entidades autorizadas a emitir o CAF no DF.", download_id="btn-download-caf-entidades")
             ])
         ])
     ]),
 
     # Filtros de Renda
-    html.Div(className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding mb-8", children=[
-        html.H3("Filtros de Renda", className="font-label-lg text-on-surface mb-4"),
+    html.Div(className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding mb-8 shadow-sm", children=[
+        html.H3("Filtros de Renda", className="font-bold text-slate-900 dark:text-white mb-4"),
         html.Div(className="flex flex-wrap items-center gap-6", children=[
             html.Div(className="flex items-center gap-4", children=[
                 html.Label("Ano:", className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider"),
@@ -167,33 +174,37 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
     
     # Linha 3: Renda (Produção Total)
     html.Div(className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full mb-6", children=[
-        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
-            html.H3("Produção Total (Por Valor Total de Produção)", className="font-label-lg text-on-surface mb-2"),
-            html.Div(className="flex-1 min-h-[350px]", children=[
+        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col shadow-sm", children=[
+            html.H3("Produção Total (Por Valor Total de Produção)", className="font-bold text-slate-900 dark:text-white mb-2"),
+            html.Div(className="flex-1 min-h-[350px] mb-2", children=[
                 dcc.Graph(id='caf-fig-renda-valor-total', style={'height': '100%', 'width': '100%'})
-            ])
+            ]),
+            render_chart_footer(source="MDA / CAF Renda", ref_date="2024", note="Valor total bruto de produção.", download_id="btn-download-caf-renda-valor")
         ]),
-        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
-            html.H3("Produção Total (Por Quantidade de Cadastros)", className="font-label-lg text-on-surface mb-2"),
-            html.Div(className="flex-1 min-h-[350px]", children=[
+        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col shadow-sm", children=[
+            html.H3("Produção Total (Por Quantidade de Cadastros)", className="font-bold text-slate-900 dark:text-white mb-2"),
+            html.Div(className="flex-1 min-h-[350px] mb-2", children=[
                 dcc.Graph(id='caf-fig-renda-qtd-total', style={'height': '100%', 'width': '100%'})
-            ])
+            ]),
+            render_chart_footer(source="MDA / CAF Renda", ref_date="2024", note="Quantidade de produtores declarantes.", download_id="btn-download-caf-renda-qtd")
         ])
     ]),
     
-    # Linha 4: Renda (Produção Per-capita)
+    # Linha 4: Renda (Produção Per-capita com Cartões Granulares Independentes)
     html.Div(className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full mb-8", children=[
-        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
-            html.H3("Produção Per-capita (Por Valor Total de Produção)", className="font-label-lg text-on-surface mb-2"),
-            html.Div(className="flex-1 min-h-[350px]", children=[
+        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding shadow-sm flex flex-col", children=[
+            html.H3("Produção Per-capita (Por Valor Total de Produção)", className="font-bold text-slate-900 dark:text-white mb-2 text-sm"),
+            html.Div(className="flex-1 min-h-[350px] mb-2", children=[
                 dcc.Graph(id='caf-fig-renda-valor-percapita', style={'height': '100%', 'width': '100%'})
-            ])
+            ]),
+            render_chart_footer(source="MDA / CAF Renda", ref_date="2024", note="Valor per-capita de produção.", download_id="btn-download-caf-renda-valor-percapita")
         ]),
-        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col", children=[
-            html.H3("Produção Per-capita (Por Quantidade de Cadastros)", className="font-label-lg text-on-surface mb-2"),
-            html.Div(className="flex-1 min-h-[350px]", children=[
+        html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding shadow-sm flex flex-col", children=[
+            html.H3("Produção Per-capita (Por Quantidade de Cadastros)", className="font-bold text-slate-900 dark:text-white mb-2 text-sm"),
+            html.Div(className="flex-1 min-h-[350px] mb-2", children=[
                 dcc.Graph(id='caf-fig-renda-qtd-percapita', style={'height': '100%', 'width': '100%'})
-            ])
+            ]),
+            render_chart_footer(source="MDA / CAF Renda", ref_date="2024", note="Quantidade per-capita declarada.", download_id="btn-download-caf-renda-qtd-percapita")
         ])
     ])
 ])
@@ -211,7 +222,6 @@ def update_meses_gerais(ano):
 )
 def update_meses_renda(ano):
     return get_meses_options(ano, dados_caf, keys_renda)
-
 
 def filter_df(df, ano, mes):
     if df.empty: return df
@@ -236,7 +246,6 @@ def filter_df(df, ano, mes):
 def update_gerais(ano, mes):
     empty_fig = go.Figure().update_layout(margin=dict(t=10, b=10, l=10, r=10), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
     
-    # Geral (Pessoa Física vs Jurídica)
     df_pf = filter_df(dados_caf.get('pf', pd.DataFrame()), ano, mes)
     df_pj_area = filter_df(dados_caf.get('pj_area', pd.DataFrame()), ano, mes)
     
@@ -244,18 +253,21 @@ def update_gerais(ano, mes):
     val_pf = df_pf.select_dtypes(include='number').sum().sum() if not df_pf.empty else 0
     val_pj = df_pj_area.select_dtypes(include='number').sum().sum() if not df_pj_area.empty else 0
     if val_pf + val_pj > 0:
-        fig_geral.add_trace(go.Pie(labels=['Pessoa Física', 'Pessoa Jurídica'], values=[val_pf, val_pj], hole=0.5, marker=dict(colors=['#2b2d42', '#8d99ae'])))
+        fig_geral.add_trace(go.Pie(
+            labels=['Pessoa Física', 'Pessoa Jurídica'], 
+            values=[val_pf, val_pj], 
+            hole=0.5, 
+            marker=dict(colors=['#440154', '#21908d'])
+        ))
         
-    # Caracterização
     fig_carac = go.Figure(empty_fig)
     df_carac = filter_df(dados_caf.get('caracterizacao', pd.DataFrame()), ano, mes)
     if not df_carac.empty:
         cols_ignore = ['UF', 'IBGE', 'TOTAL', 'ANO', 'MES']
         cols_metrics = [c for c in df_carac.columns if c not in cols_ignore and 'MUNIC' not in c.upper()]
         vals = df_carac[cols_metrics].sum(numeric_only=True).sort_values(ascending=True)
-        fig_carac.add_trace(go.Bar(x=vals.values, y=vals.index, orientation='h', marker_color='#ef233c'))
+        fig_carac.add_trace(go.Bar(x=vals.values, y=vals.index, orientation='h', marker_color='#3b528b'))
         
-    # Gênero e Jovens
     fig_genero_global = go.Figure(empty_fig)
     fig_genero_jovens = go.Figure(empty_fig)
     
@@ -264,25 +276,32 @@ def update_gerais(ano, mes):
         cols_num = df_genero.select_dtypes(include='number').columns
         mulheres = df_genero[[c for c in cols_num if 'MULHER' in c.upper()]].sum().sum()
         homens = df_genero[[c for c in cols_num if 'HOMEN' in c.upper() or 'HOMEM' in c.upper()]].sum().sum()
-        fig_genero_global.add_trace(go.Pie(labels=['Mulheres', 'Homens'], values=[mulheres, homens], hole=0.6, marker=dict(colors=['#c77dff', '#3c096c'])))
+        fig_genero_global.add_trace(go.Pie(
+            labels=['Mulheres', 'Homens'], 
+            values=[mulheres, homens], 
+            hole=0.6, 
+            marker=dict(colors=['#5dc963', '#21908d'])
+        ))
         
     df_jovens = filter_df(dados_caf.get('jovens', pd.DataFrame()), ano, mes)
     if not df_jovens.empty:
         cols_num = df_jovens.select_dtypes(include='number').columns
         mulheres_j = df_jovens[[c for c in cols_num if 'MULHER' in c.upper()]].sum().sum()
         homens_j = df_jovens[[c for c in cols_num if 'HOMEN' in c.upper() or 'HOMEM' in c.upper()]].sum().sum()
-        fig_genero_jovens.add_trace(go.Bar(x=['Mulheres Jovens', 'Homens Jovens'], y=[mulheres_j, homens_j], marker_color=['#9d4edd', '#5a189a']))
+        fig_genero_jovens.add_trace(go.Bar(
+            x=['Mulheres Jovens', 'Homens Jovens'], 
+            y=[mulheres_j, homens_j], 
+            marker_color=['#5dc963', '#3b528b']
+        ))
         
-    # Atividade
     fig_atividade = go.Figure(empty_fig)
     df_atividade = filter_df(dados_caf.get('atividade', pd.DataFrame()), ano, mes)
     if not df_atividade.empty:
         cols_ignore = ['UF', 'IBGE', 'TOTAL', 'ANO', 'MES']
         cols_metrics = [c for c in df_atividade.columns if c not in cols_ignore and 'MUNIC' not in c.upper()]
         vals = df_atividade[cols_metrics].sum(numeric_only=True).sort_values(ascending=False)
-        fig_atividade.add_trace(go.Bar(x=vals.index, y=vals.values, marker_color='#2d6a4f'))
+        fig_atividade.add_trace(go.Bar(x=vals.index, y=vals.values, marker_color='#21908d'))
         
-    # Tabelas
     df_pj = filter_df(dados_caf.get('pj', pd.DataFrame()), ano, mes)
     if not df_pj.empty and 'TOTA ATIVOS' in df_pj.columns:
         df_pj = df_pj.drop(columns=['TOTA ATIVOS'])
@@ -292,10 +311,10 @@ def update_gerais(ano, mes):
         columns=[{"name": i, "id": i} for i in df_pj.columns],
         page_size=10,
         style_table={'overflowX': 'auto', 'width': '100%'},
-        style_header={'backgroundColor': '#f1f5f9', 'color': 'black', 'fontWeight': 'bold'},
-        style_data={'backgroundColor': 'white', 'color': 'black'},
+        style_header={'backgroundColor': '#012d1d', 'color': 'white', 'fontWeight': 'bold'},
+        style_data={'backgroundColor': 'white', 'color': '#191c1c'},
         style_cell={'textAlign': 'left', 'padding': '10px', 'fontFamily': 'Public Sans, sans-serif'}
-    ) if not df_pj.empty else html.P("Sem dados.")
+    ) if not df_pj.empty else html.P("Sem dados.", className="p-4 text-slate-500")
     
     df_entidade = filter_df(dados_caf.get('entidade', pd.DataFrame()), ano, mes)
     table_entidade = dash_table.DataTable(
@@ -303,10 +322,10 @@ def update_gerais(ano, mes):
         columns=[{"name": i, "id": i} for i in df_entidade.columns],
         page_size=10,
         style_table={'overflowX': 'auto', 'width': '100%'},
-        style_header={'backgroundColor': '#f1f5f9', 'color': 'black', 'fontWeight': 'bold'},
-        style_data={'backgroundColor': 'white', 'color': 'black'},
+        style_header={'backgroundColor': '#012d1d', 'color': 'white', 'fontWeight': 'bold'},
+        style_data={'backgroundColor': 'white', 'color': '#191c1c'},
         style_cell={'textAlign': 'left', 'padding': '10px', 'fontFamily': 'Public Sans, sans-serif'}
-    ) if not df_entidade.empty else html.P("Sem dados.")
+    ) if not df_entidade.empty else html.P("Sem dados.", className="p-4 text-slate-500")
 
     return fig_geral, fig_carac, fig_genero_global, fig_genero_jovens, fig_atividade, table_pj, table_entidade
 
@@ -346,7 +365,151 @@ def update_renda(ano, mes):
             fig_per.add_trace(go.Bar(y=df_p[produto_col], x=df_p[cols_per[0]], orientation='h', marker_color=color_per))
             fig_per.update_layout(showlegend=False)
 
-    plot_renda(df_renda_valor, fig_rvt, fig_rvp, '#023e8a', '#0077b6')
-    plot_renda(df_renda_qtd, fig_rqt, fig_rqp, '#1b4965', '#0096c7')
+    plot_renda(df_renda_valor, fig_rvt, fig_rvp, '#440154', '#21908d')
+    plot_renda(df_renda_qtd, fig_rqt, fig_rqp, '#3b528b', '#5dc963')
     
     return fig_rvt, fig_rqt, fig_rvp, fig_rqp
+
+# Callbacks de Exportação CSV Granular por Componente
+@callback(
+    Output("dcc-btn-download-caf-geral", "data"),
+    Input("btn-download-caf-geral", "n_clicks"),
+    State('caf-geral-ano', 'value'),
+    State('caf-geral-mes', 'value'),
+    prevent_initial_call=True
+)
+def download_caf_geral(n_clicks, ano, mes):
+    df_pf = filter_df(dados_caf.get('pf', pd.DataFrame()), ano, mes)
+    if not df_pf.empty:
+        return dcc.send_data_frame(df_pf.to_csv, "caf_pessoas_fisicas_df.csv", index=False)
+    return None
+
+@callback(
+    Output("dcc-btn-download-caf-carac", "data"),
+    Input("btn-download-caf-carac", "n_clicks"),
+    State('caf-geral-ano', 'value'),
+    State('caf-geral-mes', 'value'),
+    prevent_initial_call=True
+)
+def download_caf_carac(n_clicks, ano, mes):
+    df_carac = filter_df(dados_caf.get('caracterizacao', pd.DataFrame()), ano, mes)
+    if not df_carac.empty:
+        return dcc.send_data_frame(df_carac.to_csv, "caf_caracterizacao_df.csv", index=False)
+    return None
+
+@callback(
+    Output("dcc-btn-download-caf-genero", "data"),
+    Input("btn-download-caf-genero", "n_clicks"),
+    State('caf-geral-ano', 'value'),
+    State('caf-geral-mes', 'value'),
+    prevent_initial_call=True
+)
+def download_caf_genero(n_clicks, ano, mes):
+    df_g = filter_df(dados_caf.get('genero', pd.DataFrame()), ano, mes)
+    if not df_g.empty:
+        return dcc.send_data_frame(df_g.to_csv, "caf_genero_global_df.csv", index=False)
+    return None
+
+@callback(
+    Output("dcc-btn-download-caf-jovens", "data"),
+    Input("btn-download-caf-jovens", "n_clicks"),
+    State('caf-geral-ano', 'value'),
+    State('caf-geral-mes', 'value'),
+    prevent_initial_call=True
+)
+def download_caf_jovens(n_clicks, ano, mes):
+    df_j = filter_df(dados_caf.get('jovens', pd.DataFrame()), ano, mes)
+    if not df_j.empty:
+        return dcc.send_data_frame(df_j.to_csv, "caf_jovens_df.csv", index=False)
+    return None
+
+@callback(
+    Output("dcc-btn-download-caf-atividade", "data"),
+    Input("btn-download-caf-atividade", "n_clicks"),
+    State('caf-geral-ano', 'value'),
+    State('caf-geral-mes', 'value'),
+    prevent_initial_call=True
+)
+def download_caf_atividade(n_clicks, ano, mes):
+    df_at = filter_df(dados_caf.get('atividade', pd.DataFrame()), ano, mes)
+    if not df_at.empty:
+        return dcc.send_data_frame(df_at.to_csv, "caf_atividades_df.csv", index=False)
+    return None
+
+@callback(
+    Output("dcc-btn-download-caf-pj", "data"),
+    Input("btn-download-caf-pj", "n_clicks"),
+    State('caf-geral-ano', 'value'),
+    State('caf-geral-mes', 'value'),
+    prevent_initial_call=True
+)
+def download_caf_pj(n_clicks, ano, mes):
+    df_pj = filter_df(dados_caf.get('pj', pd.DataFrame()), ano, mes)
+    if not df_pj.empty:
+        return dcc.send_data_frame(df_pj.to_csv, "caf_pessoas_juridicas_df.csv", index=False)
+    return None
+
+@callback(
+    Output("dcc-btn-download-caf-entidades", "data"),
+    Input("btn-download-caf-entidades", "n_clicks"),
+    State('caf-geral-ano', 'value'),
+    State('caf-geral-mes', 'value'),
+    prevent_initial_call=True
+)
+def download_caf_entidades(n_clicks, ano, mes):
+    df_ent = filter_df(dados_caf.get('entidade', pd.DataFrame()), ano, mes)
+    if not df_ent.empty:
+        return dcc.send_data_frame(df_ent.to_csv, "caf_entidades_emissoras_df.csv", index=False)
+    return None
+
+@callback(
+    Output("dcc-btn-download-caf-renda-valor", "data"),
+    Input("btn-download-caf-renda-valor", "n_clicks"),
+    State('caf-renda-ano', 'value'),
+    State('caf-renda-mes', 'value'),
+    prevent_initial_call=True
+)
+def download_caf_renda_valor(n_clicks, ano, mes):
+    df_rv = filter_df(dados_caf.get('renda_valor', pd.DataFrame()), ano, mes)
+    if not df_rv.empty:
+        return dcc.send_data_frame(df_rv.to_csv, "caf_renda_valor_total_df.csv", index=False)
+    return None
+
+@callback(
+    Output("dcc-btn-download-caf-renda-qtd", "data"),
+    Input("btn-download-caf-renda-qtd", "n_clicks"),
+    State('caf-renda-ano', 'value'),
+    State('caf-renda-mes', 'value'),
+    prevent_initial_call=True
+)
+def download_caf_renda_qtd(n_clicks, ano, mes):
+    df_rq = filter_df(dados_caf.get('renda_qtd', pd.DataFrame()), ano, mes)
+    if not df_rq.empty:
+        return dcc.send_data_frame(df_rq.to_csv, "caf_renda_quantidade_total_df.csv", index=False)
+    return None
+
+@callback(
+    Output("dcc-btn-download-caf-renda-valor-percapita", "data"),
+    Input("btn-download-caf-renda-valor-percapita", "n_clicks"),
+    State('caf-renda-ano', 'value'),
+    State('caf-renda-mes', 'value'),
+    prevent_initial_call=True
+)
+def download_caf_renda_valor_percapita(n_clicks, ano, mes):
+    df_rv = filter_df(dados_caf.get('renda_valor', pd.DataFrame()), ano, mes)
+    if not df_rv.empty:
+        return dcc.send_data_frame(df_rv.to_csv, "caf_renda_valor_percapita_df.csv", index=False)
+    return None
+
+@callback(
+    Output("dcc-btn-download-caf-renda-qtd-percapita", "data"),
+    Input("btn-download-caf-renda-qtd-percapita", "n_clicks"),
+    State('caf-renda-ano', 'value'),
+    State('caf-renda-mes', 'value'),
+    prevent_initial_call=True
+)
+def download_caf_renda_qtd_percapita(n_clicks, ano, mes):
+    df_rq = filter_df(dados_caf.get('renda_qtd', pd.DataFrame()), ano, mes)
+    if not df_rq.empty:
+        return dcc.send_data_frame(df_rq.to_csv, "caf_renda_quantidade_percapita_df.csv", index=False)
+    return None
