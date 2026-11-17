@@ -1,3 +1,4 @@
+import os
 import dash
 from dash import html, dcc, Input, Output, State, callback_context
 
@@ -10,6 +11,7 @@ external_stylesheets = [
 
 # INICIALIZAÇÃO MULTI-PAGE
 app = dash.Dash(__name__, use_pages=True, external_scripts=external_scripts, external_stylesheets=external_stylesheets)
+server = app.server  # usado pelo gunicorn: gunicorn app:server
 
 # Customização do HTML base (Tailwind e cores do protótipo)
 app.index_string = '''
@@ -128,6 +130,14 @@ sidebar = html.Aside(className="fixed left-0 top-0 h-full w-[280px] bg-emerald-9
             html.Span("analytics", className="material-symbols-outlined"),
             "Censo Agro 2017"
         ]),
+        dcc.Link(href="/tipologia", className="text-emerald-100/70 hover:text-white hover:bg-emerald-800/50 px-4 py-3 flex items-center gap-3 font-public-sans text-sm font-medium transition-all rounded", children=[
+            html.Span("hub", className="material-symbols-outlined"),
+            "Tipologia Rural (TCC)"
+        ]),
+        dcc.Link(href="/pdad-rural", className="text-emerald-100/70 hover:text-white hover:bg-emerald-800/50 px-4 py-3 flex items-center gap-3 font-public-sans text-sm font-medium transition-all rounded", children=[
+            html.Span("groups", className="material-symbols-outlined"),
+            "PDAD Rural 2022"
+        ]),
         dcc.Link(href="/ibge", className="text-emerald-100/70 hover:text-white hover:bg-emerald-800/50 px-4 py-3 flex items-center gap-3 font-public-sans text-sm font-medium transition-all rounded", children=[
             html.Span("data_exploration", className="material-symbols-outlined"),
             "IBGE 2024"
@@ -199,13 +209,17 @@ modal_ajuda = html.Div(
                         html.Div(children=[
                             html.H3("Como Navegar", className="text-lg font-semibold text-emerald-800 dark:text-emerald-300 mb-2"),
                             html.P(
-                                "Utilize o menu lateral para transitar entre as diferentes bases de dados governamentais. Utilize os filtros no topo de cada página para selecionar o recorte temporal desejado.",
+                                "Utilize o menu lateral para transitar entre as bases de dados governamentais e as páginas do TCC (Tipologia Rural e PDAD Rural 2022). Utilize os filtros de cada página para selecionar o recorte desejado.",
                                 className="text-sm leading-relaxed"
                             )
                         ]),
                         html.Div(children=[
                             html.H3("Bases de Dados (Fontes)", className="text-lg font-semibold text-emerald-800 dark:text-emerald-300 mb-3"),
                             html.Div(className="space-y-4 pl-1", children=[
+                                html.Div(children=[
+                                    html.H4("PDAD Rural 2022", className="text-sm font-bold text-slate-800 dark:text-slate-200"),
+                                    html.P("Pesquisa Distrital por Amostra de Domicílios Rural (IPE-DF): 5.075 domicílios e 15.357 moradores; base da análise exploratória e da tipologia dos territórios rurais do TCC.", className="text-sm text-slate-600 dark:text-slate-400")
+                                ]),
                                 html.Div(children=[
                                     html.H4("Censo Agro (2017)", className="text-sm font-bold text-slate-800 dark:text-slate-200"),
                                     html.P("Dados demográficos e estruturais da base produtiva (IBGE).", className="text-sm text-slate-600 dark:text-slate-400")
@@ -296,4 +310,4 @@ def toggle_modal(n_ajuda, n_fechar, current_class):
     return current_class
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=7860, debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 7860)), debug=os.environ.get('DASH_DEBUG') == '1')

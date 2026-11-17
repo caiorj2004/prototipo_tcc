@@ -1,5 +1,7 @@
-dash
-pandas
-plotly
-odfpy
-openpyxl
+dash>=4.0,<5
+plotly>=6.0,<8
+pandas>=2.2,<4
+numpy>=2.0
+odfpy>=1.4
+openpyxl>=3.1
+gunicorn>=22

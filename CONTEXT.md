@@ -41,3 +41,8 @@ O backend (ingestão e processamento Pandas) deve extrair dados de quatro fontes
    * **Aba ATIVIDADE (Atividade Principal):** Categorizar entre Agricultura/pecuária, aquicultura, silvicultura, extrativista, pescador artesanal.
    * **Aba RENDA (Distribuição de Renda):** Calcular Produção total, renda per-capita e a mediana dos valores dos produtos.
    * *Regra estrita:* Ignorar sumariamente qualquer aba não listada acima.
+
+## 6. Páginas do TCC (adicionadas)
+- `/tipologia` e `/pdad-rural` (`pages/tipologia.py`, `pages/pdad_rural.py`), alimentadas por `data_pipeline_tcc.py` a partir de `dados_tcc/*.csv` (agregados, no Git comum, fora do LFS).
+- Modelo principal: `M2_semEscadas_K3` (nunca chamar de "melhor"; M0/M1 comparação, M2b sensibilidade). A estrutura é fraca (bootstrap ARI 0,535 vs nulo 0,506, p = 0,34): gradiente de urbanização formal, não tipos naturais.
+- Rótulo de subpopulação exibido: "Moradia e Lazer" (a base chama "Características Urbanas").

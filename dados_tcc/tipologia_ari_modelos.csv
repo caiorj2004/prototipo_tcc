@@ -1,0 +1,6 @@
+modelo,M0_antigo_K3,M0_antigo_K5,M1_revisado_K3,M2_semEscadas_K3,M2b_aguaILR_K3
+M0_antigo_K3,1.0,0.59,0.38,0.88,0.78
+M0_antigo_K5,0.59,1.0,0.4,0.52,0.43
+M1_revisado_K3,0.38,0.4,1.0,0.33,0.27
+M2_semEscadas_K3,0.88,0.52,0.33,1.0,0.9
+M2b_aguaILR_K3,0.78,0.43,0.27,0.9,1.0
