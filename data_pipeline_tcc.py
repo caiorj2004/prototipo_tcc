@@ -54,3 +54,7 @@ def centroide(caminho):
     n = [float(x) for x in re.findall(r'-?\d+\.?\d*', caminho)]
     xs, ys = n[0::2], n[1::2]
     return sum(xs) / len(xs), sum(ys) / len(ys)
+
+def dados_disponiveis():
+    """False quando a pasta dados_tcc/ não existe (ex.: ambiente sem dados no repositório, antes do sync do S3)."""
+    return (PASTA / 'tipologia_grupos.csv').exists() and (PASTA / 'pdad_totais.csv').exists()

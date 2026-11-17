@@ -90,3 +90,5 @@ aws s3 sync s3://dataieb-tcc-caio-agrotec/dados_tcc/ ./dados_tcc/               
 ```
 
 No Hugging Face Space, `dados_tcc/` vai dentro do repositório (o Space não acessa o S3). Teste rápido: `pip install pytest && pytest -q tests`.
+
+Sem `dados_tcc/` (ex.: ambiente sem dados no repositório), as páginas `/tipologia` e `/pdad-rural` mostram um aviso e o app continua de pé; basta sincronizar a pasta (S3) ou apontar `DADOS_TCC_DIR` e reiniciar.
