@@ -6,12 +6,13 @@ from functools import lru_cache
 def load_cnpo_data():
     """
     Carrega e limpa os dados do Cadastro Nacional de Produtores Orgânicos (CNPO).
+    Prioriza o formato Parquet para velocidade instantânea.
     Filtra especificamente para UF == 'DF'.
     """
     base_dir = os.path.dirname(os.path.abspath(__file__))
     
     file_path = None
-    for ext in ['.csv', '.xlsx', '.ods']:
+    for ext in ['.parquet', '.csv', '.xlsx', '.ods']:
         path_test = os.path.join(base_dir, 'data', f'Dados_CNPO_DF_Final{ext}')
         if os.path.exists(path_test):
             file_path = path_test
@@ -24,7 +25,9 @@ def load_cnpo_data():
              return pd.DataFrame(columns=['TIPO DE ENTIDADE', 'ENTIDADE', 'PAIS', 'UF', 'CIDADE', 'SITUAÇÃO', 'CNPF/CNPJ/NIF', 'ESCOPO', 'ATIVIDADES', 'ANO_REFERÊNCIA', 'MÊS_REFERÊNCIA'])
     
     try:
-        if file_path.endswith('.csv'):
+        if file_path.endswith('.parquet'):
+            df = pd.read_parquet(file_path)
+        elif file_path.endswith('.csv'):
             df = pd.read_csv(file_path, sep=';', encoding='utf-8-sig', low_memory=False)
             if len(df.columns) == 1:
                 df = pd.read_csv(file_path, sep=',', encoding='utf-8-sig', low_memory=False)

@@ -6,11 +6,11 @@ from functools import lru_cache
 def load_mcdr_data(data_dir='data/'):
     """
     Carrega o arquivo de Crédito Rural (MCDR), 
-    trata os formatos numéricos pt-BR e retorna o DataFrame centralizado e limpo.
+    priorizando o formato Parquet para carregamento instantâneo.
     """
-    # Procura pela base em múltiplos formatos
+    # Procura pela base em múltiplos formatos (dando preferência a parquet)
     filepath = None
-    for ext in ['.csv', '.xlsx', '.ods']:
+    for ext in ['.parquet', '.csv', '.xlsx', '.ods']:
         path_test = os.path.join(data_dir, f'Matriz_Credito_Rural_DF_2017_2025{ext}')
         if os.path.exists(path_test):
             filepath = path_test
@@ -24,7 +24,9 @@ def load_mcdr_data(data_dir='data/'):
             return pd.DataFrame()
         
     try:
-        if filepath.endswith('.csv'):
+        if filepath.endswith('.parquet'):
+            df = pd.read_parquet(filepath)
+        elif filepath.endswith('.csv'):
             df = pd.read_csv(filepath, sep=';', encoding='utf-8-sig', decimal=',', thousands='.', low_memory=False)
             if len(df.columns) == 1:
                 df = pd.read_csv(filepath, sep=',', encoding='utf-8-sig', decimal=',', thousands='.', low_memory=False)

@@ -4,3 +4,4 @@
 
 # Tabelas agregadas do TCC (dados_tcc/) são pequenas e ficam no Git comum, sem LFS
 dados_tcc/*.csv -filter -diff -merge text
+*.parquet -filter -diff -merge binary
