@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app import app, server  # noqa: E402
+import subprocess, os, tempfile
 
 ROTAS = ['/', '/ibge', '/cnpo', '/caf', '/credito-rural', '/tipologia', '/pdad-rural']
 
@@ -12,8 +13,16 @@ def test_rotas():
     for r in ROTAS:
         assert c.get(r).status_code == 200, r
 
+def test_sem_dados_tcc():
+    """Sem dados_tcc/ o app sobe e as páginas do TCC mostram aviso (não derrubam o app)."""
+    vazio = tempfile.mkdtemp()
+    cod = ("import sys; sys.path.insert(0, %r); from app import server; c = server.test_client();"
+           "r = [c.get(p).status_code for p in ('/', '/tipologia', '/pdad-rural')]; assert r == [200, 200, 200], r; print('ok')") % str(Path(__file__).resolve().parent.parent)
+    out = subprocess.run([sys.executable, '-c', cod], env={**os.environ, 'DADOS_TCC_DIR': vazio}, capture_output=True, text=True)
+    assert out.returncode == 0 and 'ok' in out.stdout, out.stderr[-500:]
+
 def test_callbacks_tcc():
-    from pages import tipologia, pdad_rural
+    from pages import _tipologia_conteudo as tipologia, _pdad_rural_conteudo as pdad_rural
     for v in ('mapa', 'perfil', 'seg', 'modelos', 'estab'):
         assert tipologia.troca_aba(v) is not None
     g, t = tipologia.atualiza_seg(['A'], None)
