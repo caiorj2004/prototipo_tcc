@@ -44,7 +44,7 @@ def tipologia():
 @lru_cache(maxsize=None)
 def pdad():
     d = {k: _ler(f'pdad_{k}.csv') for k in ('subpopulacao', 'ra', 'faixa_etaria', 'piramide', 'renda_resumo', 'renda_escolaridade',
-                                           'renda_beneficio', 'indicadores_subpopulacao', 'totais', 'segmentos', 'spearman_segmentos')}
+                                           'renda_beneficio', 'renda_sem_renda', 'indicadores_subpopulacao', 'totais', 'segmentos', 'spearman_segmentos')}
     for k in ('subpopulacao', 'indicadores_subpopulacao', 'segmentos'):
         d[k]['subpopulacao'] = _sub(d[k]['subpopulacao'])
     return d

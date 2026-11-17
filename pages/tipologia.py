@@ -1,8 +1,9 @@
 import dash
+import re
 import numpy as np, pandas as pd
 import plotly.graph_objects as go
 from dash import html, dcc, Input, Output, callback
-from data_pipeline_tcc import tipologia, COR_GRUPO, COR_NEUTRA, ROTULO_VAR, centroide
+from data_pipeline_tcc import tipologia, COR_GRUPO, COR_NEUTRA, ROTULO_VAR
 from pages._comum import cabecalho, cartao, kpi, aviso, grafico, tabela, rodape_fonte
 
 dash.register_page(__name__, path='/tipologia', name='Tipologia Rural (TCC)')
@@ -15,27 +16,36 @@ SEG = T['segmentos']
 tot = T['totais'].iloc[0]
 
 # ---------------- mapa
+def _poligonos(caminho):
+    """Converte um caminho SVG (M/L/Z) em listas x, y; subcaminhos separados por None."""
+    xs, ys = [], []
+    for sub in re.split(r'(?=M)', caminho):
+        pts = re.findall(r'(-?\d+\.?\d*),(-?\d+\.?\d*)', sub)
+        if len(pts) < 3: continue
+        px = [float(x) for x, _ in pts]; py = [float(y) for _, y in pts]
+        xs += px + [px[0], None]; ys += py + [py[0], None]
+    return xs, ys
+
 def fig_mapa():
     W, H = T['mapa_dim'].iloc[0]
     fig = go.Figure()
-    shapes, cx, cy, txt = [], [], [], []
     for r in T['mapa_ras'].itertuples():
-        cor = COR_GRUPO.get(r.grupo_predominante, COR_NEUTRA) if isinstance(r.grupo_predominante, str) else COR_NEUTRA
-        shapes.append(dict(type='path', path=r.caminho + 'Z' if not r.caminho.strip().endswith('Z') else r.caminho,
-                           fillcolor=cor, line=dict(color='white', width=0.8), opacity=1 if r.pdad else 0.55, layer='below'))
-        x, y = centroide(r.caminho); cx.append(x); cy.append(y)
-        if r.pdad:
+        com_dado = isinstance(r.grupo_predominante, str)
+        cor = COR_GRUPO.get(r.grupo_predominante, COR_NEUTRA) if com_dado else COR_NEUTRA
+        if com_dado:
             gs = str(r.grupos).split(',')
-            txt.append(f"<b>{r.ra}</b><br>Grupo predominante: {NOME.get(r.grupo_predominante, '—')}"
-                       + ("<br>Segmentos em mais de um grupo: " + ', '.join(gs) if len(gs) > 1 else ''))
+            txt = (f"<b>{r.ra}</b><br>Grupo predominante: {NOME.get(r.grupo_predominante, '—')}"
+                   + ("<br>Segmentos em mais de um grupo: " + ', '.join(gs) if len(gs) > 1 else ''))
         else:
-            txt.append(f"<b>{r.ra}</b><br>Fora da PDAD Rural 2022 (sem segmentos rurais)")
-    fig.add_trace(go.Scatter(x=cx, y=cy, mode='markers', marker=dict(size=14, opacity=0), hovertext=txt, hoverinfo='text', showlegend=False))
+            txt = f"<b>{r.ra}</b><br>Sem segmentos na PDAD Rural 2022"
+        xs, ys = _poligonos(r.caminho)
+        fig.add_trace(go.Scatter(x=xs, y=ys, mode='lines', fill='toself', fillcolor=cor, opacity=1 if com_dado else .6,
+                                 line=dict(color='white', width=.8), hoveron='fills', text=txt, hoverinfo='text', showlegend=False))
     for g in G.index:
-        fig.add_trace(go.Scatter(x=[None], y=[None], mode='markers', marker=dict(size=12, color=COR_GRUPO[g]), name=NOME[g]))
-    fig.add_trace(go.Scatter(x=[None], y=[None], mode='markers', marker=dict(size=12, color=COR_NEUTRA), name='Fora da amostra'))
-    fig.update_layout(shapes=shapes, xaxis=dict(range=[0, W], visible=False, constrain='domain'),
-                      yaxis=dict(range=[H, 0], visible=False, scaleanchor='x'), legend=dict(orientation='h', y=-0.05), hoverlabel=dict(bgcolor='white'))
+        fig.add_trace(go.Scatter(x=[None], y=[None], mode='markers', marker=dict(size=12, color=COR_GRUPO[g]), name=NOME[g], hoverinfo='skip'))
+    fig.add_trace(go.Scatter(x=[None], y=[None], mode='markers', marker=dict(size=12, color=COR_NEUTRA), name='Sem segmentos na PDAD Rural', hoverinfo='skip'))
+    fig.update_layout(xaxis=dict(range=[0, W], visible=False, constrain='domain'), yaxis=dict(range=[H, 0], visible=False, scaleanchor='x'),
+                      legend=dict(orientation='h', y=-0.05), hoverlabel=dict(bgcolor='white'), hovermode='closest')
     return grafico(fig, 560)
 
 # ---------------- perfil dos grupos
@@ -138,10 +148,11 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
               "Resultados do TCC (IESB): clustering de 49 segmentos territoriais (Região Administrativa × subpopulação) da PDAD Rural 2022, modelo principal M2, K = 3."),
     html.Div(className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6", children=[
         kpi(f"{int(tot.n_seg)}", "segmentos analisados"), kpi(f"{int(tot.n_ra)}", "Regiões Administrativas"),
-        kpi(f"{int(tot.amostra):,}".replace(',', '.'), "domicílios na amostra efetiva"), kpi(f"{int(tot.dom):,}".replace(',', '.'), "domicílios expandidos"),
+        kpi("5.075", "domicílios na PDAD Rural 2022 (66.540 expandidos)"),
+        kpi(f"{int(tot.amostra):,}".replace(',', '.'), f"domicílios nos 49 segmentos ({int(tot.dom):,} expandidos)".replace(',', '.')),
     ]),
     aviso("os grupos são um gradiente de urbanização formal agrupado em três categorias descritivas, e a estabilidade amostral é baixa (ver aba Estabilidade). "
-          "Servem como hipótese de trabalho, não como diagnóstico definitivo.", "Atenção"),
+          "Servem como hipótese de trabalho, não como diagnóstico definitivo. Os segmentos com menos de 5 domicílios na amostra foram excluídos do modelo (por isso 5.067 dos 5.075 domicílios).", "Atenção"),
     dcc.Tabs(id='tabs-tip', value='mapa', className="mt-6", children=[
         dcc.Tab(label='Mapa e grupos', value='mapa'), dcc.Tab(label='Perfil dos grupos', value='perfil'), dcc.Tab(label='Segmentos', value='seg'),
         dcc.Tab(label='Modelos', value='modelos'), dcc.Tab(label='Estabilidade', value='estab'),

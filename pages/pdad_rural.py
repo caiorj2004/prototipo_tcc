@@ -89,7 +89,7 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background", children=[
         kpi(br(tot.domicilios_expandidos), "domicílios expandidos"), kpi(f"R$ {br(tot.renda_pc_mediana_pond)}", "mediana da renda domiciliar per capita"),
     ]),
     aviso("a PDAD Rural usa amostragem por subpopulação (agricultura familiar, empresarial, assentamento/agrovila e moradia e lazer) e por RA. "
-          "Sempre que houver '% ponderado', o valor representa a população, e não a amostra. Rendas com muitos zeros (crianças, sem renda) puxam medianas para baixo.", "Como ler"),
+          "Sempre que houver '% ponderado', o valor representa a população, e não a amostra. Boa parte dos moradores não tem renda própria (crianças, estudantes, donas de casa), e isso puxa as medianas individuais para zero.", "Como ler"),
     dcc.Tabs(id='tabs-pdad', value='perfil', className="mt-6", children=[
         dcc.Tab(label='Perfil e amostra', value='perfil'), dcc.Tab(label='Renda', value='renda'),
         dcc.Tab(label='Subpopulações', value='sub'), dcc.Tab(label='Correlações', value='corr'),
@@ -106,11 +106,17 @@ def troca(v):
             cartao("Pirâmide etária", grafico(fig_piramide(), 340), nota=f"Idade média ponderada: {br(tot.idade_media_pond, 1)} anos.")]),
             cartao("Distribuição dos domicílios por RA", grafico(fig_ra(), 560), nota="Percentual ponderado. A amostra é desproporcional por desenho (RAs menores são sobreamostradas).")]
     if v == 'renda':
-        return [cartao("Resumo de renda", tabela(R_tab), nota=f"{br(tot.pct_renda_dom_abaixo_2000, 1)}% dos domicílios (ponderado) têm renda domiciliar total abaixo de R$ 2.000."),
+        z = P['renda_sem_renda'].set_index('grupo')
+        t = z.loc['Todos os moradores com informação']; ad = z.loc['Adultos (18 anos ou mais)']
+        return [html.Div(className="grid grid-cols-1 md:grid-cols-3 gap-4", children=[
+                    kpi(f"{br(t.pct_sem_renda, 1)}%", "dos moradores não têm renda individual"),
+                    kpi(f"R$ {br(t.mediana)}", "mediana da renda individual (todos os moradores)"),
+                    kpi(f"R$ {br(ad.mediana)}", f"mediana entre adultos ({br(ad.pct_sem_renda, 1)}% sem renda)")]),
+                cartao("Resumo de renda", tabela(R_tab), nota=f"{br(tot.pct_renda_dom_abaixo_2000, 1)}% dos domicílios (ponderado) têm renda domiciliar total abaixo de R$ 2.000. Medianas ponderadas; a renda individual considera os {br(t.n)} moradores com informação de renda."),
                 html.Div(className="grid grid-cols-1 lg:grid-cols-2 gap-6", children=[
-                    cartao("Renda individual por escolaridade", grafico(fig_renda_esc(), 380)),
-                    cartao("Renda individual por recebimento de benefício", grafico(fig_beneficio(), 380),
-                           nota="Mediana de quem não recebe benefício inclui muitos moradores sem renda (crianças), por isso fica próxima de zero.")])]
+                    cartao("Renda individual por escolaridade", grafico(fig_renda_esc(), 420), nota="Mediana zero em 'sem instrução' reflete que mais da metade desse grupo (crianças inclusive) não tem renda."),
+                    cartao("Renda individual por recebimento de benefício", grafico(fig_beneficio(), 420),
+                           nota=f"Entre quem não recebe benefício, {br(z.loc['Não recebem benefício social'].pct_sem_renda, 1)}% não têm renda (mediana R$ {br(z.loc['Não recebem benefício social'].mediana, 2)}); entre quem recebe, {br(z.loc['Recebem benefício social'].pct_sem_renda, 1)}% (mediana R$ {br(z.loc['Recebem benefício social'].mediana)}).")])]
     if v == 'sub':
         return [html.Div(className="grid grid-cols-1 lg:grid-cols-2 gap-6", children=[
             cartao("Renda domiciliar per capita por subpopulação", grafico(fig_renda_sub(), 340)),

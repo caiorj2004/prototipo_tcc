@@ -29,7 +29,7 @@ def aviso(texto, titulo="Como ler"):
 
 def grafico(fig, altura=360):
     fig.update_layout(font=FONTE, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', margin=dict(t=30, b=40, l=10, r=10), height=altura)
-    return dcc.Graph(figure=fig, config={'displaylogo': False, 'responsive': True})
+    return dcc.Graph(figure=fig, config={'displaylogo': False, 'responsive': True}, style={'height': f'{altura}px', 'width': '100%'})
 
 def tabela(df, colunas=None):
     df = df if colunas is None else df[colunas]
