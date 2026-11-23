@@ -49,6 +49,8 @@ def load_cnpo_data():
                 if 'ANO' in c.upper() or 'MÊS' in c.upper() or 'MES' in c.upper():
                     df[c] = df[c].str.replace(r'\.0$', '', regex=True)
                     df[c] = df[c].replace('nan', '')
+                if c == 'TIPO DE ENTIDADE':
+                    df[c] = df[c].str.upper()  # 'Certificadora' e 'CERTIFICADORA' eram contadas separadas
                 if 'CIDADE' in c.upper():
                     import unicodedata
                     def remove_accents(input_str):
