@@ -262,7 +262,7 @@ def download_mcdr_finalidade(n_clicks, ano):
 def download_mcdr_if(n_clicks, ano):
     dff = get_filtered_mcdr(ano)
     if not dff.empty and 'NOMEIF' in dff.columns:
-        df_if = dff.groupby('NOMEIF', as_index=False)['VALORTOTAL'].sum().sort_values(by='VALORTOTAL', ascending=False).tail(15)
+        df_if = dff.groupby('NOMEIF', as_index=False)['VALORTOTAL'].sum().sort_values(by='VALORTOTAL', ascending=False).head(15)
         df_if.columns = ['Instituição Financeira', 'Valor Total (R$)']
         return dcc.send_data_frame(df_if.to_csv, "mcdr_concentracao_bancaria_top15.csv", index=False)
     return None
