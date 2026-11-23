@@ -66,8 +66,8 @@ O dashboard é estruturado em uma aplicação multi-página (`dash.page_containe
 ## 🛠️ Stack Tecnológica & Arquitetura
 
 * **Frontend & UI:** Dash (Python), Plotly para gráficos dinâmicos, estilizado com **Tailwind CSS** injetado via template HTML base.
-* **Processamento de Dados:** Manipulação pesada via **Pandas**, otimizada com `@lru_cache` para alocação eficiente em memória RAM.
-* **Infraestrutura:** Aplicação conteinerizada via **Docker** (`python:3.10-slim`), preparada para orquestração em ambientes de nuvem (como Kubernetes / K8s).
+* **Processamento de Dados:** Manipulação via **Pandas**; os carregadores de cada fonte (`data_pipeline_*.py`) usam `@lru_cache` para ler cada base uma única vez por processo e preferem Parquet quando existe.
+* **Infraestrutura:** Aplicação conteinerizada via **Docker** (`python:3.13-slim`), servida por **Gunicorn** (2 workers), com usuário não-root e `HEALTHCHECK`, no formato esperado por orquestradores como Kubernetes / K8s. O CI roda os testes em Python 3.10 e 3.13.
 
 ---
 
@@ -79,6 +79,7 @@ O dashboard é estruturado em uma aplicação multi-página (`dash.page_containe
 ├── requirements.txt           # Dependências do projeto (Dash, Pandas, Plotly, Openpyxl, Odfpy)
 ├── pages/                     # Módulos visuais de cada aba (Censo, IBGE, CNPO, CAF, MCDR)
 └── data_pipeline_*.py         # Scripts de ingestão, limpeza e tratamento de dados por fonte
+```
 
 ## Dados fora do Git (S3) e teste
 

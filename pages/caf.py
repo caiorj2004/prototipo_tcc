@@ -223,6 +223,28 @@ def update_meses_gerais(ano):
 def update_meses_renda(ano):
     return get_meses_options(ano, dados_caf, keys_renda)
 
+def agrega_renda(df, tipo):
+    """Agrega a renda do CAF por produto, exatamente como o gráfico mostra.
+    tipo='total'     -> soma da primeira coluna TOTAL
+    tipo='percapita' -> média da primeira coluna PER-CAPITA
+    Devolve (DataFrame agregado, nome do produto, nome da coluna) ou (None, None, None)."""
+    if df is None or df.empty:
+        return None, None, None
+    col_produto = [c for c in df.columns if 'PRODUTO' in c.upper()]
+    if not col_produto:
+        return None, None, None
+    prod = col_produto[0]
+    if tipo == 'total':
+        cols = [c for c in df.columns if 'TOTAL' in c.upper() and 'MEDIANA' not in c.upper()]
+        func = 'sum'
+    else:
+        cols = [c for c in df.columns if ('PER-CAPTA' in c.upper() or 'PER CAPITA' in c.upper()) and 'MEDIANA' not in c.upper()]
+        func = 'mean'
+    if not cols:
+        return None, None, None
+    out = df.groupby(prod, as_index=False)[cols[0]].agg(func).sort_values(by=cols[0], ascending=True)
+    return out, prod, cols[0]
+
 def filter_df(df, ano, mes):
     if df.empty: return df
     dff = df.copy()
@@ -346,24 +368,12 @@ def update_renda(ano, mes):
     df_renda_qtd = filter_df(dados_caf.get('renda_qtd', pd.DataFrame()), ano, mes)
     
     def plot_renda(df, fig_tot, fig_per, color_tot, color_per):
-        if df.empty: return
-        cols = df.columns
-        col_produto = [c for c in cols if 'PRODUTO' in c.upper()]
-        if not col_produto: return
-        produto_col = col_produto[0]
-        
-        cols_tot = [c for c in cols if 'TOTAL' in c.upper() and 'MEDIANA' not in c.upper()]
-        cols_per = [c for c in cols if ('PER-CAPTA' in c.upper() or 'PER CAPITA' in c.upper()) and 'MEDIANA' not in c.upper()]
-        
-        if cols_tot:
-            df_t = df.groupby(produto_col, as_index=False)[cols_tot[0]].sum().sort_values(by=cols_tot[0], ascending=True)
-            fig_tot.add_trace(go.Bar(y=df_t[produto_col], x=df_t[cols_tot[0]], orientation='h', marker_color=color_tot))
-            fig_tot.update_layout(showlegend=False)
-            
-        if cols_per:
-            df_p = df.groupby(produto_col, as_index=False)[cols_per[0]].mean().sort_values(by=cols_per[0], ascending=True)
-            fig_per.add_trace(go.Bar(y=df_p[produto_col], x=df_p[cols_per[0]], orientation='h', marker_color=color_per))
-            fig_per.update_layout(showlegend=False)
+        for tipo, fig, cor in (('total', fig_tot, color_tot), ('percapita', fig_per, color_per)):
+            agg, prod, col = agrega_renda(df, tipo)
+            if agg is None:
+                continue
+            fig.add_trace(go.Bar(y=agg[prod], x=agg[col], orientation='h', marker_color=cor))
+            fig.update_layout(showlegend=False)
 
     plot_renda(df_renda_valor, fig_rvt, fig_rvp, '#440154', '#21908d')
     plot_renda(df_renda_qtd, fig_rqt, fig_rqp, '#3b528b', '#5dc963')
@@ -445,6 +455,8 @@ def download_caf_atividade(n_clicks, ano, mes):
 )
 def download_caf_pj(n_clicks, ano, mes):
     df_pj = filter_df(dados_caf.get('pj', pd.DataFrame()), ano, mes)
+    if not df_pj.empty and 'TOTA ATIVOS' in df_pj.columns:
+        df_pj = df_pj.drop(columns=['TOTA ATIVOS'])  # mesma visão da tabela na tela
     if not df_pj.empty:
         return dcc.send_data_frame(df_pj.to_csv, "caf_pessoas_juridicas_df.csv", index=False)
     return None
@@ -470,9 +482,10 @@ def download_caf_entidades(n_clicks, ano, mes):
     prevent_initial_call=True
 )
 def download_caf_renda_valor(n_clicks, ano, mes):
-    df_rv = filter_df(dados_caf.get('renda_valor', pd.DataFrame()), ano, mes)
-    if not df_rv.empty:
-        return dcc.send_data_frame(df_rv.to_csv, "caf_renda_valor_total_df.csv", index=False)
+    agg, prod, col = agrega_renda(filter_df(dados_caf.get('renda_valor', pd.DataFrame()), ano, mes), 'total')
+    if agg is not None:
+        agg = agg.rename(columns={col: 'Total: ' + col})
+        return dcc.send_data_frame(agg.to_csv, "caf_renda_valor_total_df.csv", index=False)
     return None
 
 @callback(
@@ -483,9 +496,10 @@ def download_caf_renda_valor(n_clicks, ano, mes):
     prevent_initial_call=True
 )
 def download_caf_renda_qtd(n_clicks, ano, mes):
-    df_rq = filter_df(dados_caf.get('renda_qtd', pd.DataFrame()), ano, mes)
-    if not df_rq.empty:
-        return dcc.send_data_frame(df_rq.to_csv, "caf_renda_quantidade_total_df.csv", index=False)
+    agg, prod, col = agrega_renda(filter_df(dados_caf.get('renda_qtd', pd.DataFrame()), ano, mes), 'total')
+    if agg is not None:
+        agg = agg.rename(columns={col: 'Total: ' + col})
+        return dcc.send_data_frame(agg.to_csv, "caf_renda_quantidade_total_df.csv", index=False)
     return None
 
 @callback(
@@ -496,9 +510,10 @@ def download_caf_renda_qtd(n_clicks, ano, mes):
     prevent_initial_call=True
 )
 def download_caf_renda_valor_percapita(n_clicks, ano, mes):
-    df_rv = filter_df(dados_caf.get('renda_valor', pd.DataFrame()), ano, mes)
-    if not df_rv.empty:
-        return dcc.send_data_frame(df_rv.to_csv, "caf_renda_valor_percapita_df.csv", index=False)
+    agg, prod, col = agrega_renda(filter_df(dados_caf.get('renda_valor', pd.DataFrame()), ano, mes), 'percapita')
+    if agg is not None:
+        agg = agg.rename(columns={col: 'Média per capita: ' + col})
+        return dcc.send_data_frame(agg.to_csv, "caf_renda_valor_percapita_df.csv", index=False)
     return None
 
 @callback(
@@ -509,7 +524,8 @@ def download_caf_renda_valor_percapita(n_clicks, ano, mes):
     prevent_initial_call=True
 )
 def download_caf_renda_qtd_percapita(n_clicks, ano, mes):
-    df_rq = filter_df(dados_caf.get('renda_qtd', pd.DataFrame()), ano, mes)
-    if not df_rq.empty:
-        return dcc.send_data_frame(df_rq.to_csv, "caf_renda_quantidade_percapita_df.csv", index=False)
+    agg, prod, col = agrega_renda(filter_df(dados_caf.get('renda_qtd', pd.DataFrame()), ano, mes), 'percapita')
+    if agg is not None:
+        agg = agg.rename(columns={col: 'Média per capita: ' + col})
+        return dcc.send_data_frame(agg.to_csv, "caf_renda_quantidade_percapita_df.csv", index=False)
     return None

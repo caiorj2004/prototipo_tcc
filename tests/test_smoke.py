@@ -37,5 +37,33 @@ def test_numeros_tcc():
     assert t['grupos'].n_seg.tolist() == [12, 20, 17]
     assert int(t['totais'].iloc[0].amostra) == 5067
 
+def test_export_mcdr_top15_sao_as_maiores():
+    """O CSV de instituições financeiras deve trazer as 15 MAIORES, como o gráfico."""
+    import pandas as pd
+    import app  # noqa: F401  (registra as páginas)
+    from pages import mcdr
+    dff = mcdr.get_filtered_mcdr('ALL')
+    esperado = (dff.groupby('NOMEIF')['VALORTOTAL'].sum().sort_values(ascending=False).head(15))
+    out = mcdr.download_mcdr_if(1, 'ALL')
+    import io
+    df = pd.read_csv(io.StringIO(out['content']))
+    assert set(df['Instituição Financeira']) == set(esperado.index)
+    assert df['Valor Total (R$)'].min() >= esperado.min() - 1e-6
+
+def test_export_caf_percapita_difere_do_total():
+    """O CSV per capita é agregado (média) e não repete os dados brutos do total."""
+    import pandas as pd
+    import app  # noqa: F401
+    from pages import caf
+    for chave in ('renda_valor', 'renda_qtd'):
+        df = caf.dados_caf.get(chave, pd.DataFrame())
+        if df.empty:
+            continue
+        tot, prod, col_t = caf.agrega_renda(df, 'total')
+        per, _, col_p = caf.agrega_renda(df, 'percapita')
+        assert tot is not None and per is not None
+        assert col_t != col_p
+        assert tot[prod].is_unique and per[prod].is_unique  # uma linha por produto
+
 if __name__ == '__main__':
-    test_rotas(); test_callbacks_tcc(); test_numeros_tcc(); print('ok')
+    test_rotas(); test_callbacks_tcc(); test_numeros_tcc(); test_export_mcdr_top15_sao_as_maiores(); test_export_caf_percapita_difere_do_total(); print('ok')
