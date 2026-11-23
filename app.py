@@ -158,7 +158,7 @@ sidebar = html.Aside(
             ]),
             dcc.Link(href="/cnpo", className="text-emerald-100/80 hover:text-white hover:bg-emerald-900/60 px-3.5 py-2.5 flex items-center gap-3 text-sm font-medium transition-all rounded-xl", children=[
                 html.Span("eco", className="material-symbols-outlined text-emerald-400 shrink-0"),
-                html.Span("CNPO Orgânicos", className="sidebar-link-text whitespace-nowrap")
+                html.Span("CNPO", className="sidebar-link-text whitespace-nowrap")
             ]),
             dcc.Link(href="/caf", className="text-emerald-100/80 hover:text-white hover:bg-emerald-900/60 px-3.5 py-2.5 flex items-center gap-3 text-sm font-medium transition-all rounded-xl", children=[
                 html.Span("badge", className="material-symbols-outlined text-emerald-400 shrink-0"),
