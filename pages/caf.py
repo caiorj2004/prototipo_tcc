@@ -30,7 +30,7 @@ def get_unique_options(df_dict, keys, col_name):
         if not df.empty and col_name in df.columns:
             opts.update(df[col_name].dropna().unique().tolist())
     opts = sorted([str(x) for x in opts if str(x) not in ['Desconhecido', 'nan', '']], reverse=True)
-    return [{'label': 'Todos', 'value': 'ALL'}] + [{'label': o, 'value': o} for o in opts]
+    return [{'label': 'Mais recente', 'value': 'ALL'}] + [{'label': o, 'value': o} for o in opts]
 
 keys_gerais = ['pf', 'pj_area', 'caracterizacao', 'atividade', 'genero', 'jovens', 'pj', 'entidade']
 anos_gerais = get_unique_options(dados_caf, keys_gerais, 'ANO')
@@ -55,7 +55,7 @@ def get_meses_options(ano_selecionado, df_dict, keys):
     except:
         opts_clean = sorted(opts_clean)
         
-    options = [{'label': 'Todos', 'value': 'ALL'}]
+    options = [{'label': 'Mais recente', 'value': 'ALL'}]
     for o in opts_clean:
         options.append({'label': meses_nomes.get(o, o), 'value': o})
     return options
@@ -87,10 +87,11 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background font-public-sans", 
             html.Div(className="flex items-center gap-4", children=[
                 html.Label("Mês:", className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider"),
                 html.Div(className="w-32", children=[
-                    dcc.Dropdown(id='caf-geral-mes', options=[{'label': 'Todos', 'value': 'ALL'}], value='ALL', clearable=False, className="font-public-sans text-sm")
+                    dcc.Dropdown(id='caf-geral-mes', options=[{'label': 'Mais recente', 'value': 'ALL'}], value='ALL', clearable=False, className="font-public-sans text-sm")
                 ])
             ])
-        ])
+        ]),
+        html.P("O CAF publica uma posição mensal acumulada de cadastros. “Mais recente” mostra o último mês disponível; somar meses contaria os mesmos cadastros várias vezes.", className="text-xs text-on-surface-variant mt-3")
     ]),
     
     # Linha 1: Geral e Caracterização
@@ -100,14 +101,14 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background font-public-sans", 
             html.Div(className="flex-1 min-h-[300px] mb-2", children=[
                 dcc.Graph(id='caf-fig-geral', style={'height': '100%', 'width': '100%'})
             ]),
-            render_chart_footer(source="MDA / CAF", ref_date="2024", note="Total de cadastros no DF.", download_id="btn-download-caf-geral")
+            render_chart_footer(source="MDA / CAF", ref_date="Posição mensal (2025–2026)", note="Total de cadastros no DF.", download_id="btn-download-caf-geral")
         ]),
         html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col shadow-sm", children=[
             html.H3("Caracterização: Minorias e Assentados", className="font-bold text-slate-900 dark:text-white mb-2"),
             html.Div(className="flex-1 min-h-[300px] mb-2", children=[
                 dcc.Graph(id='caf-fig-carac', style={'height': '100%', 'width': '100%'})
             ]),
-            render_chart_footer(source="MDA / CAF", ref_date="2024", note="Perfil dos produtores inscritos.", download_id="btn-download-caf-carac")
+            render_chart_footer(source="MDA / CAF", ref_date="Posição mensal (2025–2026)", note="Perfil dos produtores inscritos.", download_id="btn-download-caf-carac")
         ])
     ]),
     
@@ -118,21 +119,21 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background font-public-sans", 
             html.Div(className="flex-1 min-h-[250px] mb-2", children=[
                 dcc.Graph(id='caf-fig-genero-global', style={'height': '100%', 'width': '100%'})
             ]),
-            render_chart_footer(source="MDA / CAF", ref_date="2024", note="Distribuição por gênero.", download_id="btn-download-caf-genero")
+            render_chart_footer(source="MDA / CAF", ref_date="Posição mensal (2025–2026)", note="Distribuição por gênero.", download_id="btn-download-caf-genero")
         ]),
         html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col shadow-sm", children=[
             html.H3("Distribuição de Jovens (16-29)", className="font-bold text-slate-900 dark:text-white mb-2 text-center text-sm"),
             html.Div(className="flex-1 min-h-[250px] mb-2", children=[
                 dcc.Graph(id='caf-fig-genero-jovens', style={'height': '100%', 'width': '100%'})
             ]),
-            render_chart_footer(source="MDA / CAF", ref_date="2024", note="Jovens produtores rurais.", download_id="btn-download-caf-jovens")
+            render_chart_footer(source="MDA / CAF", ref_date="Posição mensal (2025–2026)", note="Jovens produtores rurais.", download_id="btn-download-caf-jovens")
         ]),
         html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col shadow-sm", children=[
             html.H3("Áreas de Atividade", className="font-bold text-slate-900 dark:text-white mb-2 text-center text-sm"),
             html.Div(className="flex-1 min-h-[250px] mb-2", children=[
                 dcc.Graph(id='caf-fig-atividade', style={'height': '100%', 'width': '100%'})
             ]),
-            render_chart_footer(source="MDA / CAF", ref_date="2024", note="Segmentos de atividade agrícola.", download_id="btn-download-caf-atividade")
+            render_chart_footer(source="MDA / CAF", ref_date="Posição mensal (2025–2026)", note="Segmentos de atividade agrícola.", download_id="btn-download-caf-atividade")
         ])
     ]),
     
@@ -143,12 +144,12 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background font-public-sans", 
             html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col overflow-hidden shadow-sm", children=[
                 html.H3("Pessoas Jurídicas Registradas", className="font-bold text-slate-900 dark:text-white mb-4"),
                 html.Div(id='caf-table-pj', className="mb-4"),
-                render_chart_footer(source="MDA / CAF", ref_date="2024", note="Cooperativas e associações rurais.", download_id="btn-download-caf-pj")
+                render_chart_footer(source="MDA / CAF", ref_date="Posição mensal (2025–2026)", note="Cooperativas e associações rurais.", download_id="btn-download-caf-pj")
             ]),
             html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col overflow-hidden shadow-sm", children=[
                 html.H3("Entidades Emissoras", className="font-bold text-slate-900 dark:text-white mb-4"),
                 html.Div(id='caf-table-entidade', className="mb-4"),
-                render_chart_footer(source="MDA / CAF", ref_date="2024", note="Entidades autorizadas a emitir o CAF no DF.", download_id="btn-download-caf-entidades")
+                render_chart_footer(source="MDA / CAF", ref_date="Posição mensal (2025–2026)", note="Entidades autorizadas a emitir o CAF no DF.", download_id="btn-download-caf-entidades")
             ])
         ])
     ]),
@@ -166,45 +167,46 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background font-public-sans", 
             html.Div(className="flex items-center gap-4", children=[
                 html.Label("Mês:", className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider"),
                 html.Div(className="w-32", children=[
-                    dcc.Dropdown(id='caf-renda-mes', options=[{'label': 'Todos', 'value': 'ALL'}], value='ALL', clearable=False, className="font-public-sans text-sm")
+                    dcc.Dropdown(id='caf-renda-mes', options=[{'label': 'Mais recente', 'value': 'ALL'}], value='ALL', clearable=False, className="font-public-sans text-sm")
                 ])
             ])
-        ])
+        ]),
+        html.P("UFPA = Unidade Familiar de Produção Agrária. As abas “quantidade” e “valor” do CAF trazem as mesmas métricas (R$); mudam só os 10 produtos listados: os com mais UFPAs ou os de maior valor. A produção por UFPA é o total dividido pelas UFPAs com produção, e não por pessoa. “Mais recente” mostra a última posição disponível.", className="text-xs text-on-surface-variant mt-3")
     ]),
     
     # Linha 3: Renda (Produção Total)
     html.Div(className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full mb-6", children=[
         html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col shadow-sm", children=[
-            html.H3("Produção Total (Por Valor Total de Produção)", className="font-bold text-slate-900 dark:text-white mb-2"),
+            html.H3("Produção total (R$): 10 produtos de maior valor", className="font-bold text-slate-900 dark:text-white mb-2"),
             html.Div(className="flex-1 min-h-[350px] mb-2", children=[
                 dcc.Graph(id='caf-fig-renda-valor-total', style={'height': '100%', 'width': '100%'})
             ]),
-            render_chart_footer(source="MDA / CAF Renda", ref_date="2024", note="Valor total bruto de produção.", download_id="btn-download-caf-renda-valor")
+            render_chart_footer(source="MDA / CAF Renda", ref_date="Posição mensal (2025–2026)", note="Ranking pelo valor de produção; passe o mouse para ver as UFPAs.", download_id="btn-download-caf-renda-valor")
         ]),
         html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding flex flex-col shadow-sm", children=[
-            html.H3("Produção Total (Por Quantidade de Cadastros)", className="font-bold text-slate-900 dark:text-white mb-2"),
+            html.H3("Produção total (R$): 10 produtos com mais UFPAs", className="font-bold text-slate-900 dark:text-white mb-2"),
             html.Div(className="flex-1 min-h-[350px] mb-2", children=[
                 dcc.Graph(id='caf-fig-renda-qtd-total', style={'height': '100%', 'width': '100%'})
             ]),
-            render_chart_footer(source="MDA / CAF Renda", ref_date="2024", note="Quantidade de produtores declarantes.", download_id="btn-download-caf-renda-qtd")
+            render_chart_footer(source="MDA / CAF Renda", ref_date="Posição mensal (2025–2026)", note="Ranking pelo número de UFPAs com produção do produto.", download_id="btn-download-caf-renda-qtd")
         ])
     ]),
     
     # Linha 4: Renda (Produção Per-capita com Cartões Granulares Independentes)
     html.Div(className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full mb-8", children=[
         html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding shadow-sm flex flex-col", children=[
-            html.H3("Produção Per-capita (Por Valor Total de Produção)", className="font-bold text-slate-900 dark:text-white mb-2 text-sm"),
+            html.H3("Produção por UFPA (R$): 10 produtos de maior valor", className="font-bold text-slate-900 dark:text-white mb-2 text-sm"),
             html.Div(className="flex-1 min-h-[350px] mb-2", children=[
                 dcc.Graph(id='caf-fig-renda-valor-percapita', style={'height': '100%', 'width': '100%'})
             ]),
-            render_chart_footer(source="MDA / CAF Renda", ref_date="2024", note="Valor per-capita de produção.", download_id="btn-download-caf-renda-valor-percapita")
+            render_chart_footer(source="MDA / CAF Renda", ref_date="Posição mensal (2025–2026)", note="Produção total ÷ UFPAs com produção (valor por unidade familiar, não por pessoa).", download_id="btn-download-caf-renda-valor-percapita")
         ]),
         html.Div(className="bg-surface-container-lowest border border-outline-variant rounded-xl p-card-padding shadow-sm flex flex-col", children=[
-            html.H3("Produção Per-capita (Por Quantidade de Cadastros)", className="font-bold text-slate-900 dark:text-white mb-2 text-sm"),
+            html.H3("Produção por UFPA (R$): 10 produtos com mais UFPAs", className="font-bold text-slate-900 dark:text-white mb-2 text-sm"),
             html.Div(className="flex-1 min-h-[350px] mb-2", children=[
                 dcc.Graph(id='caf-fig-renda-qtd-percapita', style={'height': '100%', 'width': '100%'})
             ]),
-            render_chart_footer(source="MDA / CAF Renda", ref_date="2024", note="Quantidade per-capita declarada.", download_id="btn-download-caf-renda-qtd-percapita")
+            render_chart_footer(source="MDA / CAF Renda", ref_date="Posição mensal (2025–2026)", note="Produção total ÷ UFPAs com produção, entre os produtos com mais UFPAs.", download_id="btn-download-caf-renda-qtd-percapita")
         ])
     ])
 ])
@@ -225,33 +227,63 @@ def update_meses_renda(ano):
 
 def agrega_renda(df, tipo):
     """Agrega a renda do CAF por produto, exatamente como o gráfico mostra.
-    tipo='total'     -> soma da primeira coluna TOTAL
-    tipo='percapita' -> média da primeira coluna PER-CAPITA
-    Devolve (DataFrame agregado, nome do produto, nome da coluna) ou (None, None, None)."""
+    tipo='total'     -> soma da produção total (R$)
+    tipo='percapita' -> produção por UFPA = soma da produção total / soma das UFPAs com produção
+                        (média ponderada; a base já traz esse valor por produto e mês)
+    Devolve (DataFrame com produto, valor e UFPAs, nome do produto, nome da coluna de valor)
+    ou (None, None, None)."""
     if df is None or df.empty:
         return None, None, None
     col_produto = [c for c in df.columns if 'PRODUTO' in c.upper()]
     if not col_produto:
         return None, None, None
     prod = col_produto[0]
-    if tipo == 'total':
-        cols = [c for c in df.columns if 'TOTAL' in c.upper() and 'MEDIANA' not in c.upper()]
-        func = 'sum'
-    else:
-        cols = [c for c in df.columns if ('PER-CAPTA' in c.upper() or 'PER CAPITA' in c.upper()) and 'MEDIANA' not in c.upper()]
-        func = 'mean'
-    if not cols:
+    col_tot = [c for c in df.columns if 'TOTAL' in c.upper() and 'MEDIANA' not in c.upper()]
+    col_per = [c for c in df.columns if ('PER-CAPTA' in c.upper() or 'PER CAPITA' in c.upper()) and 'MEDIANA' not in c.upper()]
+    col_ufpa = [c for c in df.columns if 'UFPA' in c.upper()]
+    if not col_tot:
         return None, None, None
-    out = df.groupby(prod, as_index=False)[cols[0]].agg(func).sort_values(by=cols[0], ascending=True)
-    return out, prod, cols[0]
+    tot = col_tot[0]
+    ufpa = col_ufpa[0] if col_ufpa else None
+    agg = {tot: 'sum'}
+    if ufpa:
+        agg[ufpa] = 'sum'
+    g = df.groupby(prod, as_index=False).agg(agg)
+    if tipo == 'total':
+        col = tot
+    else:
+        if not (col_per and ufpa):
+            return None, None, None
+        col = col_per[0]
+        g[col] = g[tot] / g[ufpa].where(g[ufpa] > 0)
+        g = g.drop(columns=[tot])
+    g = g.sort_values(by=col, ascending=True)
+    return g, prod, col
+
+def renomeia_renda(agg, col, tipo):
+    """Nomes de colunas legíveis nos CSVs de renda (a base chama a coluna por UFPA de 'PER-CAPTA')."""
+    nome = 'Produção total (R$)' if tipo == 'total' else 'Produção por UFPA (R$)'
+    ren = {col: nome}
+    for c in agg.columns:
+        if 'UFPA' in c.upper():
+            ren[c] = 'UFPAs com produção'
+    return agg.rename(columns=ren)
 
 def filter_df(df, ano, mes):
+    """O CAF publica uma posição mensal acumulada (estoque de cadastros). Somar meses contaria
+    os mesmos cadastros várias vezes; por isso o filtro devolve sempre UMA posição: a escolhida
+    ou, com 'Mais recente' (ALL), a última disponível dentro do que foi selecionado."""
     if df.empty: return df
     dff = df.copy()
-    if ano != 'ALL' and 'ANO' in dff.columns:
+    if 'ANO' not in dff.columns or 'MES' not in dff.columns:
+        return dff
+    if ano != 'ALL':
         dff = dff[dff['ANO'] == str(ano)]
-    if mes != 'ALL' and 'MES' in dff.columns:
+    if mes != 'ALL':
         dff = dff[dff['MES'] == str(mes)]
+    chave = pd.to_numeric(dff['ANO'], errors='coerce') * 100 + pd.to_numeric(dff['MES'], errors='coerce')
+    if chave.notna().any():
+        dff = dff[chave == chave.max()]
     return dff
 
 @callback(
@@ -272,8 +304,8 @@ def update_gerais(ano, mes):
     df_pj_area = filter_df(dados_caf.get('pj_area', pd.DataFrame()), ano, mes)
     
     fig_geral = go.Figure(empty_fig)
-    val_pf = df_pf.select_dtypes(include='number').sum().sum() if not df_pf.empty else 0
-    val_pj = df_pj_area.select_dtypes(include='number').sum().sum() if not df_pj_area.empty else 0
+    val_pf = df_pf['TOTAL'].sum() if 'TOTAL' in df_pf.columns else 0
+    val_pj = df_pj_area['CAFS'].sum() if 'CAFS' in df_pj_area.columns else 0
     if val_pf + val_pj > 0:
         fig_geral.add_trace(go.Pie(
             labels=['Pessoa Física', 'Pessoa Jurídica'], 
@@ -372,7 +404,10 @@ def update_renda(ano, mes):
             agg, prod, col = agrega_renda(df, tipo)
             if agg is None:
                 continue
-            fig.add_trace(go.Bar(y=agg[prod], x=agg[col], orientation='h', marker_color=cor))
+            ufpa_cols = [c for c in agg.columns if 'UFPA' in c.upper()]
+            hover = '%{y}<br>R$ %{x:,.0f}' + ('<br>UFPAs: %{customdata:,}' if ufpa_cols else '') + '<extra></extra>'
+            fig.add_trace(go.Bar(y=agg[prod], x=agg[col], orientation='h', marker_color=cor,
+                                 customdata=agg[ufpa_cols[0]] if ufpa_cols else None, hovertemplate=hover))
             fig.update_layout(showlegend=False)
 
     plot_renda(df_renda_valor, fig_rvt, fig_rvp, '#440154', '#21908d')
@@ -484,7 +519,7 @@ def download_caf_entidades(n_clicks, ano, mes):
 def download_caf_renda_valor(n_clicks, ano, mes):
     agg, prod, col = agrega_renda(filter_df(dados_caf.get('renda_valor', pd.DataFrame()), ano, mes), 'total')
     if agg is not None:
-        agg = agg.rename(columns={col: 'Total: ' + col})
+        agg = renomeia_renda(agg, col, 'total')
         return dcc.send_data_frame(agg.to_csv, "caf_renda_valor_total_df.csv", index=False)
     return None
 
@@ -498,7 +533,7 @@ def download_caf_renda_valor(n_clicks, ano, mes):
 def download_caf_renda_qtd(n_clicks, ano, mes):
     agg, prod, col = agrega_renda(filter_df(dados_caf.get('renda_qtd', pd.DataFrame()), ano, mes), 'total')
     if agg is not None:
-        agg = agg.rename(columns={col: 'Total: ' + col})
+        agg = renomeia_renda(agg, col, 'total')
         return dcc.send_data_frame(agg.to_csv, "caf_renda_quantidade_total_df.csv", index=False)
     return None
 
@@ -512,7 +547,7 @@ def download_caf_renda_qtd(n_clicks, ano, mes):
 def download_caf_renda_valor_percapita(n_clicks, ano, mes):
     agg, prod, col = agrega_renda(filter_df(dados_caf.get('renda_valor', pd.DataFrame()), ano, mes), 'percapita')
     if agg is not None:
-        agg = agg.rename(columns={col: 'Média per capita: ' + col})
+        agg = renomeia_renda(agg, col, 'percapita')
         return dcc.send_data_frame(agg.to_csv, "caf_renda_valor_percapita_df.csv", index=False)
     return None
 
@@ -526,6 +561,6 @@ def download_caf_renda_valor_percapita(n_clicks, ano, mes):
 def download_caf_renda_qtd_percapita(n_clicks, ano, mes):
     agg, prod, col = agrega_renda(filter_df(dados_caf.get('renda_qtd', pd.DataFrame()), ano, mes), 'percapita')
     if agg is not None:
-        agg = agg.rename(columns={col: 'Média per capita: ' + col})
+        agg = renomeia_renda(agg, col, 'percapita')
         return dcc.send_data_frame(agg.to_csv, "caf_renda_quantidade_percapita_df.csv", index=False)
     return None
