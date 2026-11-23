@@ -65,6 +65,16 @@ def test_export_caf_percapita_difere_do_total():
         assert col_t != col_p
         assert tot[prod].is_unique and per[prod].is_unique  # uma linha por produto
 
+def test_cnpo_posicao_mensal_nao_e_somada():
+    """O CNPO é um cadastro mensal (108 posições): 'Mais recente' devolve UMA posição, não 29 mil linhas."""
+    import app  # noqa: F401
+    from pages import cnpo
+    d = cnpo.get_filtered_cnpo('ALL', 'ALL', 'ALL')
+    assert len(set(zip(d['ANO_REFERÊNCIA'], d['MÊS_REFERÊNCIA']))) == 1
+    df = cnpo.df_cnpo
+    ult = df[(df['ANO_REFERÊNCIA'] == d['ANO_REFERÊNCIA'].iloc[0]) & (df['MÊS_REFERÊNCIA'] == d['MÊS_REFERÊNCIA'].iloc[0])]
+    assert len(d) == len(ult) < len(df) / 20
+    assert 'Certificadora' not in set(df['TIPO DE ENTIDADE'])  # caixa padronizada
 def test_caf_posicao_mensal_nao_e_somada():
     """O CAF é um estoque mensal: 'Mais recente' devolve UMA posição, nunca a soma dos meses."""
     import app  # noqa: F401
@@ -98,4 +108,4 @@ def test_caf_renda_por_ufpa_bate_com_a_base():
         assert (per.set_index(prod)[col] - base).abs().max() < 1e-6
 
 if __name__ == '__main__':
-    test_rotas(); test_callbacks_tcc(); test_numeros_tcc(); test_export_mcdr_top15_sao_as_maiores(); test_export_caf_percapita_difere_do_total(); test_caf_posicao_mensal_nao_e_somada(); test_caf_donut_pf_pj_usa_so_contagens(); test_caf_renda_por_ufpa_bate_com_a_base(); print('ok')
+    test_rotas(); test_callbacks_tcc(); test_numeros_tcc(); test_export_mcdr_top15_sao_as_maiores(); test_export_caf_percapita_difere_do_total(); test_caf_posicao_mensal_nao_e_somada(); test_caf_donut_pf_pj_usa_so_contagens(); test_caf_renda_por_ufpa_bate_com_a_base(); test_cnpo_posicao_mensal_nao_e_somada(); print('ok')

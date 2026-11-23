@@ -20,7 +20,7 @@ else:
 
 cidades_options = [{'label': 'Todas as Cidades', 'value': 'ALL'}] + [{'label': c, 'value': c} for c in cidades]
 
-anos_options = [{'label': 'Todos', 'value': 'ALL'}]
+anos_options = [{'label': 'Mais recente', 'value': 'ALL'}]
 if 'ANO_REFERÊNCIA' in df_cnpo.columns and not df_cnpo.empty:
     anos = sorted([a for a in df_cnpo['ANO_REFERÊNCIA'].unique() if a])
     anos_options += [{'label': str(a), 'value': a} for a in anos]
@@ -33,7 +33,7 @@ meses_nomes = {
     '05': 'Maio', '06': 'Junho', '07': 'Julho', '08': 'Agosto', '09': 'Setembro'
 }
 
-meses_options = [{'label': 'Todos', 'value': 'ALL'}]
+meses_options = [{'label': 'Mais recente', 'value': 'ALL'}]
 if 'MÊS_REFERÊNCIA' in df_cnpo.columns and not df_cnpo.empty:
     meses = [str(m) for m in df_cnpo['MÊS_REFERÊNCIA'].unique() if str(m).strip() and str(m) != 'nan']
     try:
@@ -95,7 +95,8 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background font-public-sans", 
                     className="font-public-sans text-sm"
                 )
             ])
-        ])
+        ]),
+        html.P("O CNPO publica uma posição mensal do cadastro. “Mais recente” mostra o último mês disponível; somar meses contaria as mesmas entidades várias vezes.", className="w-full text-xs text-on-surface-variant"),
     ]),
     
     # Grid Superior (Gráficos)
@@ -113,7 +114,7 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background font-public-sans", 
             html.Div(className="min-h-[350px] relative bg-surface-container-low/30 rounded-lg p-2 mb-4", children=[
                 dcc.Graph(id='cnpo-atividades-bar', style={'height': '350px', 'width': '100%'})
             ]),
-            render_chart_footer(source="MAPA / CNPO", ref_date="2024", note="Ranking de culturas em conformidade orgânica.", download_id="btn-download-cnpo-atividades")
+            render_chart_footer(source="MAPA / CNPO", ref_date="Posição mensal (2017–2025)", note="Ranking de culturas em conformidade orgânica.", download_id="btn-download-cnpo-atividades")
         ]),
         
         # Gráfico 2: Tipos de Entidade (Donut)
@@ -128,7 +129,7 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background font-public-sans", 
             html.Div(className="min-h-[350px] relative bg-surface-container-low/30 rounded-lg p-2 mb-4", children=[
                 dcc.Graph(id='cnpo-entidades-pie', style={'height': '350px', 'width': '100%'})
             ]),
-            render_chart_footer(source="MAPA / CNPO", ref_date="2024", note="Contagem por tipo de certificadora (OCS/OPAC).", download_id="btn-download-cnpo-entidades-pie")
+            render_chart_footer(source="MAPA / CNPO", ref_date="Posição mensal (2017–2025)", note="Contagem por tipo de certificadora (OCS/OPAC).", download_id="btn-download-cnpo-entidades-pie")
         ])
     ]),
     
@@ -141,18 +142,29 @@ layout = html.Div(className="w-full p-6 md:p-8 bg-background font-public-sans", 
             ])
         ]),
         html.Div(id='cnpo-entidades-table-container', className="mb-4"),
-        render_chart_footer(source="MAPA / CNPO", ref_date="2024", note="Tabela completa de produtores orgânicos no DF.", download_id="btn-download-cnpo-tabela")
+        render_chart_footer(source="MAPA / CNPO", ref_date="Posição mensal (2017–2025)", note="Tabela completa de produtores orgânicos no DF.", download_id="btn-download-cnpo-tabela")
     ])
 ])
 
-def get_filtered_cnpo(cidade, ano, mes):
-    dff = df_cnpo.copy()
-    if cidade and cidade != 'ALL':
-        dff = dff[dff['CIDADE'] == cidade]
+def posicao_cnpo(df, ano, mes):
+    """O CNPO publica uma posição mensal (cadastro vigente no mês): são 108 posições de 2017 a 2025
+    com as mesmas entidades repetidas. Somar meses contaria cada entidade dezenas de vezes, então
+    o filtro devolve UMA posição: a escolhida ou, com 'Mais recente' (ALL), a última disponível."""
+    dff = df
     if ano and ano != 'ALL' and 'ANO_REFERÊNCIA' in dff.columns:
         dff = dff[dff['ANO_REFERÊNCIA'] == str(ano)]
     if mes and mes != 'ALL' and 'MÊS_REFERÊNCIA' in dff.columns:
         dff = dff[dff['MÊS_REFERÊNCIA'] == str(mes)]
+    if 'ANO_REFERÊNCIA' in dff.columns and 'MÊS_REFERÊNCIA' in dff.columns:
+        chave = pd.to_numeric(dff['ANO_REFERÊNCIA'], errors='coerce') * 100 + pd.to_numeric(dff['MÊS_REFERÊNCIA'], errors='coerce')
+        if chave.notna().any():
+            dff = dff[chave == chave.max()]
+    return dff
+
+def get_filtered_cnpo(cidade, ano, mes):
+    dff = posicao_cnpo(df_cnpo, ano, mes).copy()
+    if cidade and cidade != 'ALL':
+        dff = dff[dff['CIDADE'] == cidade]
     return dff
 
 @callback(
